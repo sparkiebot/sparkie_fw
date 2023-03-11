@@ -38,7 +38,7 @@ int main()
     std::cout << "Hello world!\n";
 
     TaskHandle_t task;
-    xTaskCreate(mainTask, "MainThread", 500, NULL, TASK_PRIORITY, &task);
+    xTaskCreate(mainTask, "MainTask", 500, NULL, TASK_PRIORITY, &task);
     vTaskCoreAffinitySet(task, ( ( 1 << 0 ) | ( 1 << 2 ) ));
     /* Start the tasks and timer running. */
     vTaskStartScheduler();
