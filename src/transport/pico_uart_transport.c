@@ -6,9 +6,6 @@
 #include <uxr/client/profile/transport/custom/custom_transport.h>
 
 
-#include "FreeRTOS.h"
-#include "task.h"
-
 void usleep(uint64_t us)
 {
     sleep_us(us);
