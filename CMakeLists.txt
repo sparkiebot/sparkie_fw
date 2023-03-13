@@ -22,9 +22,11 @@ add_compile_definitions(
     portSUPPORT_SMP=1
 )
 
+# micro ros
+include(micro_ros_pico_import.cmake)
+
 #Add main source directory
 add_subdirectory(src)
-
 # Set up files for the release packages
 install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/src/${NAME}.uf2

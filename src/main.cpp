@@ -1,45 +1,44 @@
 #include "pico/stdlib.h"
 #include <iostream>
+#include <stdlib.h>
 #include <FreeRTOS.h>
 #include <task.h>
 
-#define CORE0 0x01
-#define CORE1 0x02
-#define CORE_UNDEFINED 0x03
+#include "agents/URosAgent.hpp"
+#include "hube_defs.hpp"
+
+#include "config.hpp"
 
 #define TASK_PRIORITY		( tskIDLE_PRIORITY + 1UL )
 
-void helloTask(void* params)
+void setupTask(void* params)
 {
-    while(true)
-    {
-        std::cout << "Hello on Core " << sio_hw->cpuid << std::endl;
-		vTaskDelay(500);
+    hubbie::URosAgent uros_agent;
+    
+    gpio_init(LED_PIN);
+    gpio_set_dir(LED_PIN, GPIO_OUT);
+    
+    uros_agent.start(CORE0, 10);
+
+    while(true) {
+        gpio_put(LED_PIN, 1);
+        vTaskDelay(500 / portTICK_PERIOD_MS);
+        gpio_put(LED_PIN, 0);
+        vTaskDelay(500 / portTICK_PERIOD_MS);
     }
-}
 
-void mainTask(void* params)
-{
-    TaskHandle_t task;
-    xTaskCreate(helloTask, "HelloTask", 500, NULL, TASK_PRIORITY + 1, &task);
-    vTaskCoreAffinitySet(task, CORE_UNDEFINED);
-
-
-    while (true) { // Loop forever
-		std::cout << "Main from Core " << sio_hw->cpuid << std::endl;
-		vTaskDelay(2001);
-	}
+    vTaskDelete(NULL);
 }
 
 int main()
 {
     stdio_init_all();
     sleep_ms(2000);
-    std::cout << "Hello world!\n";
+    std::cout << "Hello world!\r\n";
 
     TaskHandle_t task;
-    xTaskCreate(mainTask, "MainTask", 500, NULL, TASK_PRIORITY, &task);
-    vTaskCoreAffinitySet(task, ( ( 1 << 0 ) | ( 1 << 2 ) ));
+    xTaskCreate(setupTask, "MainTask", 500, NULL, TASK_PRIORITY, &task);
+    vTaskCoreAffinitySet(task, CORE0);
     /* Start the tasks and timer running. */
     vTaskStartScheduler();
 
