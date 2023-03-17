@@ -7,17 +7,18 @@
 #include <rclc/rclc.h>
 #include <rclc/executor.h>
 
+#include "Component.hpp"
 
-#include "Agent.hpp"
-#include "../components/URosComponent.hpp"
 
 namespace hubbie
 {
-    class URosAgent : public Agent
+    class URosComponent;
+
+    class AgentComponent : public Component
     {
     public:
-        URosAgent();
-        virtual ~URosAgent();
+        AgentComponent();
+        virtual ~AgentComponent();
         void addComponent(URosComponent* component);
     protected:
         virtual void run();
@@ -32,8 +33,4 @@ namespace hubbie
         rclc_support_t support;
         rclc_executor_t executor;
     };
-    
-
-    
-    
 } // namespace hubbie

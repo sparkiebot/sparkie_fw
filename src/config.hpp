@@ -7,5 +7,9 @@
 #define UROS_PING_ATTEMPTS 60
 #define UROS_DEFAULT_POLL_TIME 300
 
+#define UROS_IMU_FRAME "imu"
+#define UROS_IMU_RATE 60.0
+
+#define IMU_SAMPLES_NUM 200
 
 #define LED_PIN 7

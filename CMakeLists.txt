@@ -22,6 +22,10 @@ add_compile_definitions(
     portSUPPORT_SMP=1
 )
 
+#icm20689
+link_directories("${CMAKE_CURRENT_LIST_DIR}/lib/icm20689pico/build")
+include_directories("${CMAKE_CURRENT_LIST_DIR}/lib/icm20689pico/include")
+
 # micro ros
 include(micro_ros_pico_import.cmake)
 

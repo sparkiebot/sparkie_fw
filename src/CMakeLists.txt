@@ -7,8 +7,10 @@ add_executable(${NAME}
 # Pull in our pico_stdlib which pulls in commonly used features
 target_link_libraries(${NAME} 
 	 pico_stdlib
+     hardware_i2c
      FreeRTOS-Kernel-Heap4
      microros
+     icm20689pico
 	)
 	
 target_include_directories(${NAME} PRIVATE

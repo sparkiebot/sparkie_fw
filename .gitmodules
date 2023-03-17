@@ -1,3 +1,6 @@
 [submodule "freertos_kernel"]
 	path = lib/FreeRTOS-Kernel
 	url = https://github.com/FreeRTOS/FreeRTOS-Kernel.git
+[submodule "icm20689pico"]
+	path = lib/icm20689pico
+	url = https://github.com/mattsays/icm20689pico.git
