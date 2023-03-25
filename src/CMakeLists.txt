@@ -8,6 +8,8 @@ add_executable(${NAME}
 target_link_libraries(${NAME} 
 	 pico_stdlib
      hardware_i2c
+     hardware_watchdog
+     hardware_pwm
      FreeRTOS-Kernel-Heap4
      microros
      icm20689pico

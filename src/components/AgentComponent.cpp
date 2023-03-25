@@ -3,25 +3,43 @@
 #include "../config.hpp"
 #include "../hube_defs.hpp"
 
+#include "BuzzerComponent.hpp"
+
 #include <pico/stdlib.h>
+#include <hardware/watchdog.h>
 #include <iostream>
 
 #include <rmw_microros/rmw_microros.h>
 #include <rcl/error_handling.h>
 #include "../transport/pico_uart_transports.h"
-#include <timers.h>
+
 
 
 #define ROS_CHECK(ret) if(ret != RCL_RET_OK) stop(HUBE_UROS_GENERIC + 30 + ret)
 
 using namespace hubbie;
 
+void pingTask(TimerHandle_t timer)
+{
+    auto ret = rmw_uros_ping_agent(5000, 1);
+
+    if(ret != RMW_RET_OK)
+    {
+        gpio_put(LED_PIN, 7);
+        vTaskDelay(200 / portTICK_PERIOD_MS);
+        gpio_put(LED_PIN, 0);
+        watchdog_reboot(0, 0, 0);        
+    }
+
+    HUBE_VIS_DEBUG(200);
+}
+
 configSTACK_DEPTH_TYPE AgentComponent::getMaxStackSize()
 {
     return 1000;
 }
 
-AgentComponent::AgentComponent() : Component("uros", CORE0, 10)
+AgentComponent::AgentComponent() : Component("uros", CORE0, AGENT_PRIORITY)
 {
     components = std::vector<URosComponent*>();
     exec_num = 0;
@@ -29,15 +47,16 @@ AgentComponent::AgentComponent() : Component("uros", CORE0, 10)
 }
 
 AgentComponent::~AgentComponent()
-    {
-        for (auto *component : this->components)
-        {
-            delete component;
-        }
-        this->components.clear();        
+{
 
-        this->stop(HUBE_OK);
+    for (auto *component : this->components)
+    {
+        delete component;
     }
+    this->components.clear();        
+
+    this->stop(HUBE_OK);
+}
 
 void AgentComponent::run()
 {
@@ -54,9 +73,14 @@ void AgentComponent::run()
 
     if(ret != RMW_RET_OK)
     {
-        stop(HUBE_UROS_PING_TIMEOUT);
+        gpio_put(LED_PIN, 7);
+        vTaskDelay(200 / portTICK_PERIOD_MS);
+        gpio_put(LED_PIN, 0);
+        watchdog_reboot(0, 0, 0);
     }
 
+    hubbie::BuzzerComponent::play(hubbie::CONNECTED);
+    
     this->allocator = rcl_get_default_allocator();
 
     ROS_CHECK(rclc_support_init(&this->support, 0, NULL, &this->allocator));
@@ -69,11 +93,8 @@ void AgentComponent::run()
 
     for (auto &&comp : this->components)
     {
-        gpio_put(LED_PIN, 1);
         comp->rosInit();
         comp->start();
-        vTaskDelay(200 / portTICK_PERIOD_MS);
-        gpio_put(LED_PIN, 0);
     }
     
 
@@ -89,6 +110,14 @@ void AgentComponent::run()
         
     rmw_uros_sync_session(200);
     
+    this->pingTimer = xTimerCreate(
+        "uros_ping", pdMS_TO_TICKS(1000 * 10), 
+        true, NULL,
+        pingTask
+    );
+
+    xTimerStart(this->pingTimer, 0);
+
     while(this->running)
     {
         if(this->exec_num > 0)

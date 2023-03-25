@@ -1,14 +1,12 @@
 #pragma once
 
 #include <vector>
-
-#include <rclc_lifecycle/rclc_lifecycle.h>
 #include <rcl/rcl.h>
 #include <rclc/rclc.h>
 #include <rclc/executor.h>
 
 #include "Component.hpp"
-
+#include <timers.h>
 
 namespace hubbie
 {
@@ -32,5 +30,6 @@ namespace hubbie
         rcl_allocator_t allocator;
         rclc_support_t support;
         rclc_executor_t executor;
+        xTimerHandle pingTimer;
     };
 } // namespace hubbie

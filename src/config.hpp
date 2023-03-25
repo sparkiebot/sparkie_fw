@@ -10,6 +10,10 @@
 #define UROS_IMU_FRAME "imu"
 #define UROS_IMU_RATE 60.0
 
-#define IMU_SAMPLES_NUM 200
+
+// Hardware related
 
 #define LED_PIN 7
+#define BUZZ_PIN 6
+
+#define IMU_SAMPLES_NUM 200
