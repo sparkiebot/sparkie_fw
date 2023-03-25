@@ -9,7 +9,6 @@
 #include <rcl/service.h>
 #include <vector>
 
-#define HZ_TO_MS(hz) 1000 / hz
 
 namespace hubbie
 {

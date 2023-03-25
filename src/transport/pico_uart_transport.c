@@ -11,8 +11,7 @@
 
 void usleep(uint64_t us)
 {
-    //sleep_us(us);
-    vTaskDelay(((uint32_t)us) / portTICK_PERIOD_MS);
+    sleep_us(us);
 }
 
 int clock_gettime(clockid_t* unused, struct timespec *tp)

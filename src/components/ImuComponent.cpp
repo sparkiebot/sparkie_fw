@@ -7,13 +7,26 @@
 #include <rmw_microros/rmw_microros.h>
 
 #include <pico/stdlib.h>
+#include <hardware/pwm.h>
+#include <hardware/i2c.h>
 
 #define ICM20689_SLEEP(ms) vTaskDelay(ms / portTICK_PERIOD_MS)
 #define ROS_CHECK(ret) if(ret != RCL_RET_OK) while(true) {std::cout << "error code: " << ret << "\r\n"; vTaskDelay(500 / portTICK_PERIOD_MS); }
 
+#define I2C_PORT i2c0
+#define I2C_SDA 0
+#define I2C_SCL 1
+
 using namespace hubbie;
-ImuComponent::ImuComponent() : URosComponent("imu", CORE1, 20)
+ImuComponent::ImuComponent() : URosComponent("imu", CORE1, IMU_PRIORITY)
 {
+    // I2C Initialisation. Using it at 400Khz.
+    i2c_init(I2C_PORT, 400*1000);
+    gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);
+    gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);
+    gpio_pull_up(I2C_SDA);
+    gpio_pull_up(I2C_SCL);
+
 }
 
 ImuComponent::~ImuComponent()
@@ -62,8 +75,7 @@ void ImuComponent::run()
     icm20689_init(&this->imu, IMU_SAMPLES_NUM);
     
     auto xLastWakeTime = xTaskGetTickCount();
-    auto since_epoch = std::chrono::high_resolution_clock::now().time_since_epoch();
-    
+
     while(this->running)
     {
         this->ros_msg.header.stamp.nanosec = (uint32_t) rmw_uros_epoch_nanos();
