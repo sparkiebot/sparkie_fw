@@ -102,6 +102,10 @@ void LedStripComponent::onMessage(URosComponent* component, const void* msg_in)
     auto msg = (const std_msgs__msg__UInt8*) msg_in;
     auto ledstrip =  (LedStripComponent*) component;
     auto mode = static_cast<LedStripMode>(msg->data);
+    
+    if(msg->data < 10 || msg->data > 19)
+        mode = LedStripMode::Off;
+    
     ledstrip->setMode(mode, LED_NOTIFY_LAYER);
 }
 
