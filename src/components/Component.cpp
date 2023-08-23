@@ -1,30 +1,27 @@
 #include "Component.hpp"
+#include "StatsComponent.hpp"
+#include <vector>
 #include "pico/stdlib.h"
 #include <iostream>
-#include "../hube_defs.hpp"
+#include "../sparkie_defs.hpp"
 
-using namespace hubbie;
+using namespace sparkie;
 
-Component::Component(const char *name, UBaseType_t coreid, UBaseType_t priority)
+Component::Component(std::string_view name, UBaseType_t coreid, UBaseType_t priority)
 {
     this->name = std::string(name);
     this->core = coreid;
     this->priority = priority;
+    this->running = false;
 }
 
 Component::~Component()
 {
-    this->stop(HUBE_OK);
+    this->stop();
 }
 
-
-void Component::stop(hube_ret code)
+void Component::stop()
 {
-    if(code != HUBE_OK)
-        std::cerr 
-            << "COMPONENT: '" << this->name << "' exited with code " 
-            << (uint16_t) code << "\r\n";
-
     if(this->xHandle != NULL)
     {
         vTaskDelete(this->xHandle);
@@ -40,18 +37,24 @@ uint Component::getStakHighWater()
         return 0;
 }
 
+configSTACK_DEPTH_TYPE Component::getMaxStackSize()
+{
+    return 1000;
+}
+
 TaskHandle_t Component::getTaskHandle()
 {
     return this->xHandle;
 }
 
+const std::string& Component::getName()
+{
+    return this->name;
+}
+
 bool Component::start()
 {
     UBaseType_t res;
-
-    std::cout << 
-        "COMPONENT: Starting '" << this->name << "' task "
-        "on core " << this->core << "...\r\n";
 
     res = xTaskCreate(
         Component::vTask,
@@ -65,7 +68,41 @@ bool Component::start()
     if(this->xHandle != NULL)
         vTaskCoreAffinitySet(this->xHandle, this->core);
 
-    return res == pdPASS;
+    if(res != pdPASS)
+    {
+        return false;
+    }
+
+    TaskRunTime_t taskParam;
+
+    /*
+    One time operation that adds two idle tasks (one per core) used for calculating cpu usage
+    */
+
+    if(StatsComponent::taskParams.empty())
+    {
+        auto taskHandles = xTaskGetIdleTaskHandle();
+        for (size_t i = 0; i < configNUM_CORES; i++)
+        {
+            taskParam.name = "IDLE" + std::to_string(i);
+            taskParam.handle = taskHandles[i];
+            taskParam.core_time[0] = 0;
+            taskParam.core_time[1] = 0;
+            taskParam.start_time = 0;    
+            taskParam.idle = true;
+            StatsComponent::taskParams.push_back(taskParam);
+        }
+    }
+
+    taskParam.name = this->name;
+    taskParam.handle = this->xHandle;
+    taskParam.core_time[0] = 0;
+    taskParam.core_time[1] = 0;
+    taskParam.start_time = 0;  
+    taskParam.idle = false;  
+    StatsComponent::taskParams.push_back(taskParam);
+
+    return true;
 }
 
 void Component::vTask(void* params)
@@ -75,7 +112,7 @@ void Component::vTask(void* params)
     if(component != NULL)
         component->run();
 
-    component->stop(HUBE_OK);
+    component->stop();
 }
 
 

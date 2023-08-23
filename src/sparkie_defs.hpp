@@ -1,25 +1,47 @@
 #pragma once
 
+#define I2C_PORT i2c0
+#define I2C_SDA 20
+#define I2C_SCL 21
+
 #define CORE0 0x01
 #define CORE1 0x02
 #define CORE_UNDEFINED 0x03
 
 #define HZ_TO_MS(hz) (1000 / hz) / portTICK_PERIOD_MS
 
-#define AGENT_PRIORITY 30
-#define IMU_PRIORITY 50
-#define BUZZ_PRIORITY 20
+#ifdef DEBUG
+    #define ROS_CHECK(ret) if(ret != RCL_RET_OK) while(true) { std::cout << ("Error runnig ros function: " + std::to_string(ret)) << "\r\n"; vTaskDelay(2000 / portTICK_PERIOD_MS); }
+#else
+    #define ROS_CHECK(ret) ret
+#endif
 
-#define HUBE_VIS_DEBUG(ms) gpio_put(LED_PIN, 1); vTaskDelay(ms / portTICK_PERIOD_MS); gpio_put(LED_PIN, 0);
+#define UROS_PUB_QUEUE_SIZE 1
+
+#define MAX_TASK_NUM 32
+
+#define AGENT_PRIORITY 60
+#define IMU_PRIORITY 45
+#define MOTORS_PRIORITY 55
+#define SERVO_PRIORITY 40
+#define ULTRASONIC_PRIORITY 30
+#define LEDSTRIP_PRIORITY 25
+#define DHT_PRIORITY 15
+#define BATT_PRIORITY 14
+#define STATS_PRIORITY 10
+#define LOGGER_PRIORITY 5
+
+#define AGENT_UPDATE_RATE 60
+
+#define RPM_TO_RADS 0.10472
+
+#define SPARKIE_VIS_DEBUG(ms) gpio_put(LED_PIN, 1); vTaskDelay(ms / portTICK_PERIOD_MS); gpio_put(LED_PIN, 0);
     
+#define LED_BATTERY_LAYER 0 
+#define LED_NOTIFY_LAYER 1
 
 
-
-#define HUBE_OK 0
-
-#define HUBE_UROS_GENERIC 100
-#define HUBE_UROS_PING_TIMEOUT HUBE_UROS_GENERIC + 1
-
+#pragma region Notes
 // Notes
 #define NOTE_MUTE 0
 #define NOTE_B0  31
@@ -112,4 +134,6 @@
 #define NOTE_D8  4699
 #define NOTE_DS8 4978
 #define REST      0
+
+#pragma endregion Notes
 

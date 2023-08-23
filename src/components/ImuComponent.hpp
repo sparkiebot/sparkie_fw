@@ -2,23 +2,23 @@
 
 #include "URosComponent.hpp"
 
-#define ICM20689_SLEEP(ms) vTaskDelay(ms / portTICK_PERIOD_MS)
 #include <icm20689pico/icm20689pico.h>
 
 #include <sensor_msgs/msg/imu.h>
 
-namespace hubbie
+namespace sparkie
 {
     class ImuComponent : public URosComponent
     {
     public:
         ImuComponent();
-        virtual ~ImuComponent();
-        virtual configSTACK_DEPTH_TYPE getMaxStackSize();
+    protected:
         virtual void rosInit();
-        virtual void run();
     private:
+        virtual void init();
+        virtual void loop(TickType_t* xLastWakeTime);
+
         icm20689_t imu;
         sensor_msgs__msg__Imu ros_msg;
-    };    
-} // namespace hubbie
+    };
+} // namespace sparkie

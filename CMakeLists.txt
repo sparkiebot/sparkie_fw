@@ -1,14 +1,17 @@
 cmake_minimum_required(VERSION 3.12)
 
 
-set(NAME hubbie_board)
+set(NAME sparkie_fw)
 
 include(pico_sdk_import.cmake)
 
 # Gooey boilerplate
 project(${NAME} C CXX ASM)
 set(CMAKE_C_STANDARD 11)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
+
+set(PICO_CXX_ENABLE_EXCEPTIONS 1)
+set(PICO_CXX_ENABLE_RTTI 1)
 
 # Initialize the SDK
 pico_sdk_init()
@@ -23,14 +26,24 @@ add_compile_definitions(
 )
 
 #icm20689
-link_directories("${CMAKE_CURRENT_LIST_DIR}/lib/icm20689pico/build")
-include_directories("${CMAKE_CURRENT_LIST_DIR}/lib/icm20689pico/include")
+add_subdirectory(lib/icm20689pico)
+
+#PicoLed library
+include(lib/PicoLED/PicoLed.cmake)
+
+# pico_dht library
+add_subdirectory(lib/pico_dht/dht)
+
+# pico pwm library
+add_subdirectory(lib/PicoPWM)
 
 # micro ros
 include(micro_ros_pico_import.cmake)
 
 #Add main source directory
 add_subdirectory(src)
+
+
 # Set up files for the release packages
 install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/src/${NAME}.uf2

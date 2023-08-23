@@ -1,35 +1,88 @@
 #pragma once
 
+#include <memory>
 #include <vector>
 #include <rcl/rcl.h>
 #include <rclc/rclc.h>
 #include <rclc/executor.h>
+#include <rclc/service.h>
+#include <rclc/publisher.h>
+#include <rcl_interfaces/msg/log.h>
+#include <std_msgs/msg/u_int8.h>
 
 #include "Component.hpp"
+#include <semphr.h>
 #include <timers.h>
 
-namespace hubbie
+
+#include <source_location>
+namespace sparkie
 {
     class URosComponent;
+    class LoggerComponent;
+
+    typedef struct _PubMsg 
+    {
+        rcl_publisher_t* pub; 
+        const void* msg;
+    } PubMsg_t;
+
+    typedef struct _SubMsg 
+    { 
+        const void* data;
+    } SubMsg_t;
+
+    enum class ResetRequest
+    {
+        Normal,
+        Prog,
+        None
+    };
 
     class AgentComponent : public Component
     {
     public:
         AgentComponent();
-        virtual ~AgentComponent();
+        friend class URosComponent;
         void addComponent(URosComponent* component);
+        static AgentComponent* getInstance();
+        
+        static void sendResetRequest(ResetRequest request);
+
+        static bool isConnected();
     protected:
         virtual void run();
-        virtual configSTACK_DEPTH_TYPE getMaxStackSize();
+        
+        PubMsg_t pub_msg;
+
     private:
+        static void system_service(const void * msg_in);
+
+        void initSysService();
+
+        void initConnection();
+        void destroyConnection();
+
+        TimerHandle_t blinkTimer;
+
+        PubMsg_t recv_msg;
+
         std::vector<URosComponent*> components;
-        uint8_t exec_num;
-        bool running;
+        uint8_t handles_num;
+        bool connected, initialized;
+
+        ResetRequest request;
 
         rcl_node_t node;
         rcl_allocator_t allocator;
         rclc_support_t support;
         rclc_executor_t executor;
-        xTimerHandle pingTimer;
+        
+        rcl_subscription_t sys_service;
+        std_msgs__msg__UInt8 sys_msg;
+
+        LoggerComponent* logger;
+
+        static AgentComponent* instance;
     };
-} // namespace hubbie
+} // namespace sparkie

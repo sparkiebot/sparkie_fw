@@ -49,6 +49,34 @@
         "ctime": "cpp",
         "ratio": "cpp",
         "iomanip": "cpp",
-        "sstream": "cpp"
-    }
+        "sstream": "cpp",
+        "charconv": "cpp",
+        "optional": "cpp",
+        "format": "cpp",
+        "span": "cpp",
+        "variant": "cpp",
+        "map": "cpp",
+        "source_location": "cpp",
+        "nec_carrier_burst.pio.h": "c",
+        "i2c.h": "c"
+    },
+    "C_Cpp.errorSquiggles": "disabled",
+    // a Pico binary on the host
+    "cmake.statusbar.advanced": {
+        "debug": {
+            "visibility": "hidden"
+        },
+        "launch": {
+            "visibility": "hidden"
+        },
+        "build": {
+            "visibility": "default"
+        },
+        "buildTarget": {
+            "visibility": "hidden"
+        }
+    },
+    "cmake.buildBeforeRun": true,
+    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+    "cortex-debug.openocdPath": "openocd"
 }

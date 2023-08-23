@@ -1,14 +1,13 @@
 #pragma once
 
-#include "Component.hpp"
-#include <queue.h>
-
-namespace hubbie
+#include <picopwm.h>
+namespace sparkie
 {
     enum BuzzerAction
     {
         PLAY_STARTUP = 0,
         CONNECTED = 1,
+        ERROR = 2
     };
 
     class BuzzerComponent
@@ -17,8 +16,9 @@ namespace hubbie
         static void init();
         static void play(const BuzzerAction action);
     private:
-        static void tone(const uint32_t freq);
-        static void tone(const uint32_t freq, const uint32_t duration);
+        static void tone(const uint freq);
+        static void tone(const uint freq, const uint duration);
+        static PicoPwm* pwm;
     }; 
    
-} // namespace hubbie
+} // namespace sparkie
