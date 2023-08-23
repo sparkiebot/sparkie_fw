@@ -9,7 +9,7 @@
 	url = https://github.com/ForsakenNGS/PicoLED.git
 [submodule "lib/pico_dht"]
 	path = lib/pico_dht
-	url = https://github.com/vmilea/pico_dht.git
+	url = https://github.com/sparkiebot/pico_dht.git
 [submodule "lib/PicoPWM"]
 	path = lib/PicoPWM
-	url = https://github.com/ShellAddicted/PicoPWM.git
+	url = https://github.com/sparkiebot/PicoPWM.git
