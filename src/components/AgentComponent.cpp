@@ -260,7 +260,7 @@ void AgentComponent::run()
             }
             
             if(this->handles_num > 0)
-                rclc_executor_spin_some(&this->executor, RCL_MS_TO_NS(5));
+                rclc_executor_spin_some(&this->executor, RCL_MS_TO_NS(1));
             
             for (auto &&comp : this->components)
             {
