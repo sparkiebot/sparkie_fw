@@ -182,6 +182,9 @@ void AgentComponent::initConnection()
         )
     );
 
+    if(watchdog_caused_reboot())
+        LoggerComponent::log(LogLevel::Debug, "Restarted by watchdog.");
+
     LoggerComponent::log(LogLevel::Info, "Starting..");
 
     for (auto &&comp : this->components)
