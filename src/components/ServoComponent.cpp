@@ -27,11 +27,6 @@ ServoComponent::ServoComponent(const std::string& name, uint pin, uint freq)
     this->period = (1e6 / freq); // us
 }
 
-configSTACK_DEPTH_TYPE ServoComponent::getMaxStackSize()
-{
-    return 1000;
-}
-
 void ServoComponent::setMicros(float micros)
 {
     if(micros < SERVO_MIN_MICROS || micros > SERVO_MAX_MICROS)

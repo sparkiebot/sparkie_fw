@@ -15,7 +15,6 @@ namespace sparkie
     {
     public:
         ServoComponent(const std::string& topic_name, uint pin, uint freq);
-        virtual configSTACK_DEPTH_TYPE getMaxStackSize();
         virtual uint8_t getHandlesNum();
     protected:
         void rosInit();
