@@ -10,6 +10,7 @@
 #include <hardware/watchdog.h>
 
 #include "components/AgentComponent.hpp"
+#include "components/SystemComponent.hpp"
 #include "components/StatsComponent.hpp"
 #include "components/ImuComponent.hpp"
 #include "components/ServoComponent.hpp"
@@ -65,6 +66,7 @@ void setup_task(void* params)
     components.push_back(new sparkie::ServoComponent("head/tilt", SERVO_HEAD_TILT_PIN, SERVO_FREQUENCY));
     components.push_back(new sparkie::StatsComponent());
     components.push_back(new sparkie::ImuComponent());
+    components.push_back(new sparkie::SystemComponent());
     
     auto uros_agent = new sparkie::AgentComponent();
 

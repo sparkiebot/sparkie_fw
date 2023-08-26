@@ -19,6 +19,7 @@
 namespace sparkie
 {
     class URosComponent;
+    class SystemComponent;
     class LoggerComponent;
 
     typedef struct _PubMsg 
@@ -48,11 +49,14 @@ namespace sparkie
             rclc_executor_t* executor;
     };
 
+
+
     class AgentComponent : public Component
     {
     public:
         AgentComponent();
         friend class URosComponent;
+        friend class SystemComponent;
         void addComponent(URosComponent* component);
         static AgentComponent* getInstance();
         

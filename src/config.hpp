@@ -17,6 +17,7 @@
 #define UROS_DHT_RATE 0.2
 #define UROS_ULTRASONIC_RATE 24.0 // This will be fixed because limited by the sensor.
 #define UROS_SERVO_RATE 20.0
+#define UROS_SYSTEM_MANAGER_RATE 1.0
 #define UROS_LEDSTRIP_RATE 24.0
 #define UROS_STATS_RATE 0.2
 #define UROS_MOTORS_RATE 30.0

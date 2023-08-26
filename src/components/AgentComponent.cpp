@@ -39,21 +39,11 @@ void blinkTask(TimerHandle_t timer)
     SPARKIE_VIS_DEBUG(200);
 }
 
-// See https://forums.raspberrypi.com/viewtopic.php?t=326333
-static void wait_and_reboot()
-{
-#if configUSE_IDLE_HOOK				// if there's an IDLE hook, it's because it is used to kick the watchdog
-	__asm volatile ( " cpsid i " );
-	while ( true )  {};				// reboot should happen here when watchdog times out
-#else
-	watchdog_reboot(0,0,25);
-#endif
-}
 
 // Executor Component
 
 URosExecutor::URosExecutor(rclc_executor_t* executor) 
-    : Component("uros_executor", CORE0, AGENT_PRIORITY+1)
+    : Component("uros_executor", CORE0, AGENT_PRIORITY-1)
 {
     this->executor = executor;
 }
@@ -175,16 +165,6 @@ void AgentComponent::initConnection()
         this->handles_num += comp->getHandlesNum();
     }
 
-    ROS_CHECK(
-        rclc_subscription_init_default(
-            &this->sys_service,
-            &this->node,
-            ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, UInt8),
-            "board/system"
-        )
-    );
-    this->handles_num++;
-
     /*
     Executor needs to know the number of  subscribers/services beforehand.
     This is why every URosComponent is responsible of telling this information through a function.
@@ -198,16 +178,6 @@ void AgentComponent::initConnection()
                 &this->allocator
             )
         );
-
-    ROS_CHECK(
-        rclc_executor_add_subscription(
-            &this->executor,
-            &this->sys_service,
-            &this->sys_msg,
-            AgentComponent::system_service,
-            ON_NEW_DATA
-        )
-    );
 
     if(watchdog_caused_reboot())
         LoggerComponent::log(LogLevel::Debug, "Restarted by watchdog.");
@@ -310,28 +280,6 @@ void AgentComponent::run()
         xTimerStop(this->blinkTimer, 0);
 
         this->destroyConnection();
-
-        if(this->request != ResetRequest::None)
-        {
-            if(this->request == ResetRequest::Normal)
-            {
-                watchdog_reboot(0, 0, 0);
-            }
-            else
-            {                
-                // It goes into programming mode and also stops the other core.
-                // See https://forums.raspberrypi.com/viewtopic.php?t=326333
-                vTaskSuspendAll();
-                taskENTER_CRITICAL();
-                multicore_reset_core1();
-                multicore_launch_core1(wait_and_reboot);
-                reset_usb_boot(0,0);
-                taskEXIT_CRITICAL();	// should never get here!!!!
-                xTaskResumeAll();
-            }
-
-            break;
-        }
     } 
 }
 
