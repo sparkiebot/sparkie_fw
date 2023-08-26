@@ -34,7 +34,11 @@ void ImuComponent::init()
     vTaskDelay(50 / portTICK_PERIOD_MS);
     
     icm20689_set_sleep_function(&this->imu, sleep_fn);
-    icm20689_init(&this->imu, IMU_ADDR, IMU_SAMPLES_NUM);
+    /*
+        Because of floating addr pin both address are being used.
+    */
+    icm20689_init(&this->imu, 0x68, IMU_SAMPLES_NUM);
+    icm20689_init(&this->imu, 0x69, IMU_SAMPLES_NUM);
 }
 
 void ImuComponent::rosInit()
@@ -63,8 +67,13 @@ void ImuComponent::rosInit()
 
 void ImuComponent::loop(TickType_t* xLastWakeTime)
 {
+    this->imu.addr = 0x68;
     icm20689_read_gyroacc(&this->imu, NULL, NULL);
     
+    this->imu.addr = 0x69;
+    icm20689_read_gyroacc(&this->imu, NULL, NULL);
+    
+
     this->ros_msg.header.stamp.nanosec = (uint32_t) rmw_uros_epoch_nanos();
     this->ros_msg.header.stamp.sec = (int32_t) (rmw_uros_epoch_millis() / 1000);
 

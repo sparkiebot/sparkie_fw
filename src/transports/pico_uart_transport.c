@@ -2,12 +2,12 @@
 #include "pico/stdio/driver.h"
 #include "pico/stdio.h"
 #include "pico/stdlib.h"
+#include "pico/stdio_usb.h"
 #include <time.h>
 
 #include "../config.hpp"
 
-#include <hardware/uart.h>
-
+#include <hardware/dma.h>
 #include <uxr/client/profile/transport/custom/custom_transport.h>
 
 
@@ -20,12 +20,11 @@
  * @return true if ok
  */
 bool pico_uart_transport_open(struct uxrCustomTransport * transport){
-	uart_init(uart0, 921600);
 
-    // Set the GPIO pin mux to the UART - 0 is TX, 1 is RX
+    uart_init(uart0, 921600);
+
     gpio_set_function(UART_TX, GPIO_FUNC_UART);
     gpio_set_function(UART_RX, GPIO_FUNC_UART);
-
 
 	return true;
 }
@@ -54,6 +53,7 @@ size_t pico_uart_transport_write(struct uxrCustomTransport * transport, const ui
             taskYIELD();
         uart_get_hw(uart0)->dr = *buf++;
     }
+
     return len;
 }
 
@@ -68,16 +68,15 @@ size_t pico_uart_transport_write(struct uxrCustomTransport * transport, const ui
  */
 size_t pico_uart_transport_read(struct uxrCustomTransport * transport, uint8_t *buf, size_t len, int timeout, uint8_t *errcode){
     size_t i = 0;
-    
-    while (uart_is_readable_within_us(uart0, timeout/(len * sizeof(uint8_t)))) {
+    while (uart_is_readable_within_us(uart0, timeout/len)) {
     	buf[i++] = (uint8_t) uart_get_hw(uart0)->dr;
-    	if (i == len){
-    		return i;
+    	
+        if (i == len){
+    		break;
     	}
 
     	taskYIELD();
-
     }
-
+    
     return i;
 }

@@ -16,15 +16,7 @@
  * @param us
  */
 void usleep(uint64_t us){
-	if (us < 1000){
-		busy_wait_us(us);
-		return;
-	}
-   TickType_t t = pdMS_TO_TICKS(us/1000);
-   if (t < 1){
-	   t = 1;
-   }
-   vTaskDelay(t);
+	sleep_us(us);
 }
 
 /***
@@ -88,7 +80,6 @@ size_t pico_usb_transport_read(struct uxrCustomTransport * transport, uint8_t *b
     while (time_us_64() < until_time_us){
     	read = stdio_usb.in_chars(buf, len);
     	if (read != 0){
-    		vTaskDelay(1);
     		return read;
     	}
 

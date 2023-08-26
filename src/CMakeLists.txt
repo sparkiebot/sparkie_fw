@@ -50,9 +50,6 @@ add_compile_definitions(PICO_UART_ENABLE_CRLF_SUPPORT=0)
 add_compile_definitions(PICO_STDIO_ENABLE_CRLF_SUPPORT=0)
 add_compile_definitions(PICO_STDIO_DEFAULT_CRLF=0)
 
-#add_compile_definitions(PICO_DEFAULT_UART_TX_PIN=16)
-#add_compile_definitions(PICO_DEFAULT_UART_RX_PIN=17)
-
 # Usb settings
 add_compile_definitions(USBD_MANUFACTURER="FortiSix")
 add_compile_definitions(USBD_PRODUCT="Sparkie Board")

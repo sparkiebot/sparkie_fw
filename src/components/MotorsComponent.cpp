@@ -27,7 +27,6 @@ Motor::Motor(uint pin_pwm, uint pin_a, uint pin_b, uint enc_a, uint enc_b)
     this->enc.pin_b = enc_b;
     this->enc.pulses = 0;
 
-    this->error_rpm = 0.0;
     this->dir_change = false;
     this->rotation = 0.0;
     this->pid_rpm = 0.0;
@@ -73,10 +72,9 @@ void Motor::setSpeed(double rpm)
     
     this->goal_speed = goal_rpm;
     
-    this->pid.reset();
-
     if(std::abs(goal_rpm) < MOTOR_MIN_RPM)
     {
+        this->pid.reset();
         this->goal_speed = 0.0;
         this->state = MotorState::STILL;
     }
@@ -84,6 +82,7 @@ void Motor::setSpeed(double rpm)
     {
         if(this->curr_speed < 0)
         {
+            this->pid.reset();
             this->dir_change = true;
         }
 
@@ -93,6 +92,7 @@ void Motor::setSpeed(double rpm)
     {
         if(this->curr_speed > 0)
         {
+            this->pid.reset();
             this->dir_change = true;
         }
 
@@ -103,10 +103,11 @@ void Motor::setSpeed(double rpm)
 void Motor::setRawSpeed(double rpm)
 {
 
-    if(rpm == 0)
+    if(std::abs(rpm) < MOTOR_MIN_RPM)
     {
         gpio_put(this->pin_a, 0);
         gpio_put(this->pin_b, 0);
+        return;
     }
     else if(rpm > 0)
     {
@@ -203,14 +204,12 @@ void MotorsComponent::init()
         MOTOR_A0_PIN, MOTOR_A1_PIN, 
         MOTOR_A_ENC0_PIN, MOTOR_A_ENC1_PIN
     ));
-    this->motors[0].error_rpm = 5.0;
 
     this->motors.push_back(Motor(
         MOTOR_B_PWM_PIN, 
         MOTOR_B0_PIN, MOTOR_B1_PIN, 
         MOTOR_B_ENC0_PIN, MOTOR_B_ENC1_PIN
     ));
-    this->motors[1].error_rpm = 10.0;
 }
 
 void MotorsComponent::setState(bool state)
@@ -246,15 +245,7 @@ void MotorsComponent::rosInit()
         &this->vel_msg,
         false
     );
-
-    this->addSubscription(
-        "wheels/state",
-        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Bool),
-        MotorsComponent::onStateMessage,
-        &this->state_msg,
-        false
-    );
-
+    
     this->addPublisher(
         "wheels/left/speed",
         ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32)
@@ -290,19 +281,9 @@ void MotorsComponent::onVelMessage(URosComponent* component, const void* msg_in)
     auto left_rpm = -left_speed / RPM_TO_RADS;
     auto right_rpm = right_speed / RPM_TO_RADS;
     
-    if(
-            sign(left_rpm) != sign(motors_comp->motors[0].curr_speed) ||
-            sign(right_rpm) != sign(motors_comp->motors[1].curr_speed)
-    )
-    {
-        motors_comp->motors[0].dir_change = true;
-        motors_comp->motors[1].dir_change = true;
-    }
-
     motors_comp->motors[0].setSpeed(left_rpm);
     motors_comp->motors[1].setSpeed(right_rpm);
 }
-
 
 void MotorsComponent::loop(TickType_t* xLastWakeTime)
 {

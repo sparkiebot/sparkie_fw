@@ -127,7 +127,7 @@ void URosComponent::addSubscription(
     usub.callback = callback;
 
     this->subscriptions.push_back(usub);
-
+    
     res = rclc_executor_add_subscription_with_context(
         &AgentComponent::getInstance()->executor,
         sub,
@@ -226,6 +226,7 @@ void URosComponent::run()
     {
         this->pollMessages();
         this->loop(&xLastWakeTime);
+        
         if(this->update_rate != 0.0)
             xTaskDelayUntil(&xLastWakeTime, HZ_TO_MS(this->update_rate));
     }

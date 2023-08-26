@@ -73,7 +73,6 @@ namespace sparkie
         virtual void loop(TickType_t* xLastWakeTime) = 0;
         virtual void run();
 
-
         float update_rate;
     };
     

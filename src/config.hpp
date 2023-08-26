@@ -19,7 +19,7 @@
 #define UROS_SERVO_RATE 20.0
 #define UROS_LEDSTRIP_RATE 24.0
 #define UROS_STATS_RATE 0.2
-#define UROS_MOTORS_RATE 60.0
+#define UROS_MOTORS_RATE 30.0
 
 // Frame names
 #define UROS_BASE_FRAME "base_link"
@@ -85,7 +85,7 @@
 #define MOTORS_WHEEL_RADIUS 0.0335 // meters
 #define MOTORS_WHEEL_SEPARATION 0.243 // meters
 
-#define MOTOR_SOFT_MAX_RPM 75
+#define MOTOR_SOFT_MAX_RPM 120
 #define MOTOR_MAX_RPM 178
 #define MOTOR_MIN_RPM 10
 #define MOTOR_PULSES_PER_REVOLUTIONS 11.0

@@ -55,7 +55,6 @@ namespace sparkie
         bool dir_change;
         double goal_speed;
         double pid_rpm;
-        double error_rpm;
 
         const double pwm_per_rpm = UINT16_MAX / MOTOR_MAX_RPM;
 
