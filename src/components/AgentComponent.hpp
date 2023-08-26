@@ -39,6 +39,15 @@ namespace sparkie
         None
     };
 
+    class URosExecutor : public Component
+    {
+        public:
+            URosExecutor(rclc_executor_t* executor);
+            virtual void run();
+        private:
+            rclc_executor_t* executor;
+    };
+
     class AgentComponent : public Component
     {
     public:
@@ -48,7 +57,7 @@ namespace sparkie
         static AgentComponent* getInstance();
         
         static void sendResetRequest(ResetRequest request);
-
+        static void disconnect();
         static bool isConnected();
     protected:
         virtual void run();
@@ -57,7 +66,6 @@ namespace sparkie
 
     private:
         static void system_service(const void * msg_in);
-
         void initSysService();
 
         void initConnection();
@@ -77,7 +85,7 @@ namespace sparkie
         rcl_allocator_t allocator;
         rclc_support_t support;
         rclc_executor_t executor;
-        
+
         rcl_subscription_t sys_service;
         std_msgs__msg__UInt8 sys_msg;
 

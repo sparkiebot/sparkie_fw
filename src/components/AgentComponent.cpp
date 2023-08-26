@@ -48,10 +48,32 @@ static void wait_and_reboot()
 #else
 	watchdog_reboot(0,0,25);
 #endif
-
 }
 
-AgentComponent::AgentComponent() : Component("uros", CORE0, AGENT_PRIORITY)
+// Executor Component
+
+URosExecutor::URosExecutor(rclc_executor_t* executor) 
+    : Component("uros_executor", CORE0, AGENT_PRIORITY+1)
+{
+    this->executor = executor;
+}
+
+void URosExecutor::run()
+{
+    auto lastTickTime = xTaskGetTickCount();
+    while (true)
+    {
+        if(rmw_uros_ping_agent(10, 200) != RCL_RET_OK)
+        {
+            AgentComponent::disconnect();
+            break;
+        }
+        rclc_executor_spin_some(this->executor, RCL_MS_TO_NS(100));
+        taskYIELD();
+    }
+}
+
+AgentComponent::AgentComponent() : Component("uros_agent", CORE0, AGENT_PRIORITY)
 {
     instance = this;
 
@@ -93,6 +115,11 @@ void AgentComponent::sendResetRequest(ResetRequest request)
     instance->request = request;
     instance->connected = false;
     LoggerComponent::log(LogLevel::Info, "Received reset request...");
+}
+
+void AgentComponent::disconnect()
+{
+    AgentComponent::getInstance()->connected = false;
 }
 
 bool AgentComponent::isConnected()
@@ -192,7 +219,7 @@ void AgentComponent::initConnection()
         LoggerComponent::log(LogLevel::Debug, comp->name + " initializing..");
 
         comp->rosInit();
-        
+
         LoggerComponent::log(LogLevel::Info, comp->name + " initialized.");
     }
 
@@ -242,6 +269,12 @@ void AgentComponent::run()
         blinkTask
     );
 
+    /*
+    A separate task only for receiving incoming messages will be used.
+    Pubblishing is done by agent task
+    */
+    auto exec = URosExecutor(&this->executor);
+
     while (true)
     {
         LedStripComponent::getInstance()->setMode(LedStripMode::StartingUp);
@@ -254,17 +287,10 @@ void AgentComponent::run()
 
         auto lastWakeTime = xTaskGetTickCount();
 
+        exec.start();
+
         while(this->connected)
         {
-            if(rmw_uros_ping_agent(200, 10) != RMW_RET_OK)
-            {
-                sparkie::BuzzerComponent::play(sparkie::ERROR);
-                break;
-            }
-            
-            if(this->handles_num > 0)
-                rclc_executor_spin_some(&this->executor, RCL_MS_TO_NS(1));
-            
             for (auto &&comp : this->components)
             {
                 for (auto &&pub : comp->publishers)
@@ -279,6 +305,8 @@ void AgentComponent::run()
             xTaskDelayUntil(&lastWakeTime, HZ_TO_MS(AGENT_UPDATE_RATE));
         }
 
+        exec.stop();
+
         xTimerStop(this->blinkTimer, 0);
 
         this->destroyConnection();
@@ -290,7 +318,7 @@ void AgentComponent::run()
                 watchdog_reboot(0, 0, 0);
             }
             else
-            {
+            {                
                 // It goes into programming mode and also stops the other core.
                 // See https://forums.raspberrypi.com/viewtopic.php?t=326333
                 vTaskSuspendAll();
