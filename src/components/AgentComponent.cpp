@@ -275,6 +275,14 @@ void AgentComponent::run()
             xTaskDelayUntil(&lastWakeTime, HZ_TO_MS(AGENT_UPDATE_RATE));
         }
 
+        /*
+            Stop anyithing critical if connection crashes.
+        */
+        for (auto &&comp : this->components)
+        {
+            comp->safeStop();
+        }
+
         exec.stop();
 
         xTimerStop(this->blinkTimer, 0);

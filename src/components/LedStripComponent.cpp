@@ -135,3 +135,9 @@ void LedStripComponent::loop(TickType_t* xLastWakeTime)
 
     this->controller.show();
 }
+
+void LedStripComponent::safeStop()
+{
+    this->controller.clear();
+    this->controller.show();
+}

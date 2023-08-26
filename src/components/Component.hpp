@@ -16,6 +16,7 @@ namespace sparkie
 
         virtual bool start();
         virtual void stop();
+        virtual void safeStop();
 
         uint getStakHighWater();
         TaskHandle_t getTaskHandle();
@@ -28,6 +29,7 @@ namespace sparkie
         virtual configSTACK_DEPTH_TYPE getMaxStackSize();
         static void vTask(void *params);
         virtual void run() = 0;
+        
 
         TaskHandle_t xHandle = NULL;
         std::string name;

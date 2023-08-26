@@ -86,7 +86,8 @@ namespace sparkie
 
         virtual void init();
         virtual void loop(TickType_t* xLastWakeTime);
-        
+        virtual void safeStop();
+
         std::vector<Motor> motors;
         bool enabled;
         TickType_t lastUpdate;

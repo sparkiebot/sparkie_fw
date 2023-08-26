@@ -22,6 +22,7 @@ Component::~Component()
 
 void Component::stop()
 {
+    this->safeStop();
     if(this->xHandle != NULL)
     {
         vTaskDelete(this->xHandle);
@@ -111,12 +112,15 @@ void Component::vTask(void* params)
     
     if(component != NULL)
         component->run();
-
-    component->stop();
 }
 
 
 UBaseType_t Component::getRunningCore()
 {
     return sio_hw->cpuid;
+}
+
+void Component::safeStop()
+{
+
 }

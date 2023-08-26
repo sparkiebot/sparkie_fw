@@ -306,3 +306,11 @@ void MotorsComponent::loop(TickType_t* xLastWakeTime)
         this->sendMessage(i, &this->speed_msg[i]);
     }
 }
+
+void MotorsComponent::safeStop()
+{
+    for (size_t i = 0; i < MOTORS_NUM; i++)
+    {
+        this->motors[i].setRawSpeed(0);
+    }
+}

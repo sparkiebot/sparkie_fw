@@ -39,13 +39,15 @@ namespace sparkie
         virtual uint8_t getHandlesNum();
         void setMode(const LedStripMode mode, uint8_t index = LED_NOTIFY_LAYER);
         const LedStripMode getMode(uint8_t index);
+        
     protected:
         virtual void rosInit();
     private:
 
         virtual void init();
         virtual void loop(TickType_t* xLastWakeTime);
-        
+        virtual void safeStop();
+
         static void onMessage(URosComponent* component, const void* msg_in);
         
         uint8_t sm_index;

@@ -43,6 +43,12 @@ void SystemComponent::onMessage(URosComponent* component, const void* msg_in)
     if(msg->data > 1)
         return;
 
+    // Stops anything critical.
+    for (auto &&comp : AgentComponent::getInstance()->components)
+    {
+        comp->safeStop();
+    }
+
     if(msg->data == 0)
     {
         watchdog_reboot(0, 0, 0);

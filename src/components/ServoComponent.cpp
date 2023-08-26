@@ -50,7 +50,7 @@ uint8_t ServoComponent::getHandlesNum()
 void ServoComponent::rosInit()
 {
     this->addSubscription(
-        this->getName().substr(7),
+        this->getName().substr(6),
         ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32),
         ServoComponent::onMessage,
         &this->angle_msg
@@ -71,4 +71,9 @@ void ServoComponent::onMessage(URosComponent* component, const void* msg_in)
 
 void ServoComponent::loop(TickType_t* xLastWakeTime)
 {
+}
+
+void ServoComponent::safeStop()
+{
+    this->setDegrees(SERVO_ZERO_POS); 
 }

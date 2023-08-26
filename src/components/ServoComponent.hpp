@@ -21,6 +21,7 @@ namespace sparkie
     private:
         virtual void init();
         virtual void loop(TickType_t* xLastWakeTime);
+        virtual void safeStop();
 
         static void onMessage(URosComponent* component, const void* msg_in);
 
