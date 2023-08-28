@@ -21,7 +21,6 @@ namespace sparkie
         friend class AgentComponent;
 
         LoggerComponent();
-        virtual uint getExecNum();
 
         static void log(LogLevel level, std::string msg, 
             const std::source_location& location = std::source_location::current());

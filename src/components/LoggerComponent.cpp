@@ -13,11 +13,6 @@ LoggerComponent::LoggerComponent() : URosComponent("logger", CORE0, LOGGER_PRIOR
     instance = this;
 }
 
-uint LoggerComponent::getExecNum()
-{
-    return 0;
-}
-
 void LoggerComponent::rosInit()
 {
     rcl_publisher_t* pub;
