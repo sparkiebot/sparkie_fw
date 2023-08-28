@@ -5,7 +5,7 @@
 #include "../misc/Pid.hpp"
 
 #include <geometry_msgs/msg/twist.h>
-#include <std_msgs/msg/float32.h>
+#include <irobot_create_msgs/msg/wheel_vels.h>
 #include <std_msgs/msg/bool.h>
 
 #include <string>
@@ -15,12 +15,7 @@
 namespace sparkie
 {
     class MotorsComponent;
-    class OdometryComponent;
-
-    typedef struct
-    {
-        float speed[MOTORS_NUM]; // rpm
-    } WheelsData;
+    
 
     typedef struct 
     {
@@ -93,8 +88,8 @@ namespace sparkie
         TickType_t lastUpdate;
 
         std_msgs__msg__Bool state_msg;
-        geometry_msgs__msg__Twist vel_msg;
-        std_msgs__msg__Float32 speed_msg[MOTORS_NUM];
+        geometry_msgs__msg__Twist cmd_msg;
+        irobot_create_msgs__msg__WheelVels wheel_vels_msg;
         
         static MotorsComponent* instance;
     };    

@@ -1,6 +1,8 @@
 #include "MotorsComponent.hpp"
 #include <iostream>
 #include "../sparkie_defs.hpp"
+#include <rmw_microros/rmw_microros.h>
+#include <micro_ros_utilities/string_utilities.h>
 #include <cmath>
 #include <numbers>
 #include <pico/stdlib.h>
@@ -190,7 +192,7 @@ MotorsComponent::MotorsComponent()
 }
 
 void MotorsComponent::init()
-{
+{    
     this->lastUpdate = 0;
     
     gpio_init(MOTORS_ENABLE_PIN);
@@ -242,19 +244,21 @@ void MotorsComponent::rosInit()
         "/cmd_vel",
         ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist),
         MotorsComponent::onVelMessage,
-        &this->vel_msg,
+        &this->cmd_msg,
         false
     );
     
     this->addPublisher(
-        "wheels/left/speed",
-        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32)
+        "wheels/vel",
+        ROSIDL_GET_MSG_TYPE_SUPPORT(irobot_create_msgs, msg, WheelVels)
     );
 
-    this->addPublisher(
-        "wheels/right/speed",
-        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32)
-    );
+    this->wheel_vels_msg.header.frame_id =
+        micro_ros_string_utilities_init(UROS_BASE_FRAME);
+    
+    this->wheel_vels_msg.velocity_left = 0;
+    this->wheel_vels_msg.velocity_right = 0;
+    
 }
 
 void MotorsComponent::onStateMessage(URosComponent* component, const void* msg_in)
@@ -295,16 +299,17 @@ void MotorsComponent::loop(TickType_t* xLastWakeTime)
         for (size_t i = 0; i < MOTORS_NUM; i++)
         {
             this->motors[i].update(delta_time);
-        }
+        }        
     }
 
     this->lastUpdate = current_time;
 
-    for (size_t i = 0; i < MOTORS_NUM; i++)
-    {
-        this->speed_msg[i].data = this->motors[i].curr_speed;
-        this->sendMessage(i, &this->speed_msg[i]);
-    }
+    this->wheel_vels_msg.header.stamp.nanosec = (uint32_t) rmw_uros_epoch_nanos();
+    this->wheel_vels_msg.header.stamp.sec = (int32_t) (rmw_uros_epoch_millis() / 1000);
+    this->wheel_vels_msg.velocity_left = this->motors[0].curr_speed;
+    this->wheel_vels_msg.velocity_right = this->motors[1].curr_speed;
+
+    this->sendMessage(0, &this->wheel_vels_msg);
 }
 
 void MotorsComponent::safeStop()
