@@ -14,6 +14,7 @@
 // URosComponent's task update rates
 #define UROS_IMU_RATE 60.0
 #define UROS_BATTERY_RATE 1.0
+#define UROS_AIRQUALITY_RATE 1.0
 #define UROS_DHT_RATE 0.2
 #define UROS_ULTRASONIC_RATE 24.0 // This will be fixed because limited by the sensor.
 #define UROS_SERVO_RATE 20.0
@@ -62,8 +63,8 @@
 #define SERVO_HEAD_TILT_PIN 7
 
 #define SERVO_ZERO_POS 0
-#define SERVO_SOFT_MAX_ANGLE 25
-#define SERVO_SOFT_MIN_ANGLE -10
+#define SERVO_SOFT_MAX_ANGLE SERVO_ZERO_POS + 25
+#define SERVO_SOFT_MIN_ANGLE SERVO_ZERO_POS - 10
 
 #define SERVO_MIN_MICROS 488
 #define SERVO_MAX_MICROS 2500
@@ -110,5 +111,20 @@
 #define MOTOR_B_ENC0_PIN 18
 #define MOTOR_B_ENC1_PIN 19
 
-// Battery
+// AirQuality Sensor
+#define AIRQ_ADDR 0x5A
+#define AIRQ_ID 0x81
+
+#define AIRQ_DISABLED_MODE 0
+#define AIRQ_EVERYSEC_MODE 1
+#define AIRQ_EVERYTENSEC_MODE 2
+#define AIRQ_EVERYMIN_MODE 3
+
+#define AIRQ_REG_STATUS 0x00
+#define AIRQ_REG_DEVID 0x20
+#define AIRQ_REG_MEASMODE 0x01
+#define AIRQ_REG_DATA 0x02
+#define AIRQ_REG_ENV 0x05
+
+// Action Button
 

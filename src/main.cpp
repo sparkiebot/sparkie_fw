@@ -14,6 +14,7 @@
 #include "components/StatsComponent.hpp"
 #include "components/ImuComponent.hpp"
 #include "components/ServoComponent.hpp"
+#include "components/AirQualityComponent.hpp"
 #include "components/DHTComponent.hpp"
 #include "components/BatteryComponent.hpp"
 #include "components/UltrasonicComponent.hpp"
@@ -51,6 +52,12 @@ void setup_task(void* params)
 {
     std::vector<sparkie::Component*> components;
 
+    i2c_init(I2C_PORT, 400*1000);
+    gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);
+    gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);
+    gpio_pull_up(I2C_SDA);
+    gpio_pull_up(I2C_SCL);
+
     gpio_init(LED_PIN);
     gpio_set_dir(LED_PIN, GPIO_OUT);
     gpio_put(LED_PIN, 1);
@@ -60,6 +67,7 @@ void setup_task(void* params)
 
     components.push_back(new sparkie::LedStripComponent());
     components.push_back(new sparkie::UltrasonicComponent());
+    components.push_back(new sparkie::AirQualityComponent());
     components.push_back(new sparkie::DHTComponent());
     components.push_back(new sparkie::BatteryComponent());
     components.push_back(new sparkie::MotorsComponent());
@@ -89,8 +97,10 @@ void setup_task(void* params)
 
 int main()
 {
+    sleep_ms(2000);
+
     TaskHandle_t task;
-    xTaskCreate(setup_task, "setup", 2000, NULL, 1, &task);
+    xTaskCreate(setup_task, "setup", 3000, NULL, 1, &task);
     vTaskCoreAffinitySet(task, CORE0);
     // Start the tasks and timer running. 
     vTaskStartScheduler();

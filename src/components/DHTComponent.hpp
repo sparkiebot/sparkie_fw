@@ -8,6 +8,11 @@
 
 namespace sparkie
 {
+    typedef struct _dht_data
+    {
+        float temp;
+        float hum;
+    } DhtData;
     class DHTComponent : public URosComponent
     {
     public:
@@ -22,5 +27,6 @@ namespace sparkie
         sensor_msgs__msg__Temperature temp_msg;
         sensor_msgs__msg__RelativeHumidity hum_msg;
         dht_t sensor;
+        DhtData dht_data;
     };    
 } // namespace sparkie

@@ -1,6 +1,7 @@
 #include "DHTComponent.hpp"
 #include "../sparkie_defs.hpp"
 #include "../config.hpp"
+#include "AirQualityComponent.hpp"
 #include <micro_ros_utilities/string_utilities.h>
 #include <rmw_microros/rmw_microros.h>
 #include <iostream>
@@ -62,4 +63,13 @@ void DHTComponent::loop(TickType_t* xLastWakeTime)
     
     this->sendMessage(0, &this->temp_msg);
     this->sendMessage(1, &this->hum_msg);
+
+    // Send data to air quality sensor.
+    if(AgentComponent::isConnected())
+    {
+        this->dht_data.temp = temp;
+        this->dht_data.hum = hum;
+        xQueueOverwrite(AirQualityComponent::dht_queue, &this->dht_data);   
+    }
+    
 }

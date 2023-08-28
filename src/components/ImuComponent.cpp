@@ -25,12 +25,6 @@ ImuComponent::ImuComponent() : URosComponent("imu", CORE1, IMU_PRIORITY, UROS_IM
 
 void ImuComponent::init()
 {   
-    i2c_init(I2C_PORT, 400*1000);
-    gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);
-    gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);
-    gpio_pull_up(I2C_SDA);
-    gpio_pull_up(I2C_SCL);
-
     vTaskDelay(50 / portTICK_PERIOD_MS);
     
     icm20689_set_sleep_function(&this->imu, sleep_fn);

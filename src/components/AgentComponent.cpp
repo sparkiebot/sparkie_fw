@@ -53,7 +53,7 @@ void URosExecutor::run()
     auto lastTickTime = xTaskGetTickCount();
     while (true)
     {
-        if(rmw_uros_ping_agent(10, 200) != RCL_RET_OK)
+        if(rmw_uros_ping_agent(1, 200) != RCL_RET_OK)
         {
             AgentComponent::disconnect();
             break;
