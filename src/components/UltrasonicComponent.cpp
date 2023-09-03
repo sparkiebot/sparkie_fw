@@ -150,7 +150,7 @@ void UltrasonicComponent::loop(TickType_t* xLastWakeTime)
         this->ros_msg[i].header.stamp.nanosec = ns;
         this->ros_msg[i].header.stamp.sec = sec;
         this->ros_msg[i].header.frame_id = this->sensors[i].frame;
-        this->ros_msg[i].range = this->sensors[i].data;
+        this->ros_msg[i].range = this->sensors[i].data / 100.0;
         this->sendMessage(i, &this->ros_msg[i]);
     }
 
