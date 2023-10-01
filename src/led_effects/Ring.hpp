@@ -4,6 +4,9 @@
 
 namespace sparkie::visuals
 {
+    /**
+     * @brief Makes a ring like effect with the specified color, size and speed.
+    */
     class Ring : public StripEffect
     {
     public:

@@ -52,6 +52,10 @@ void setup_task(void* params)
 {
     std::vector<sparkie::Component*> components;
 
+    /**
+     * Initializing I2C port
+    */
+
     i2c_init(I2C_PORT, 400*1000);
     gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);
     gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);
@@ -65,6 +69,10 @@ void setup_task(void* params)
     sparkie::BuzzerComponent::init();
     sparkie::BuzzerComponent::play(sparkie::PLAY_STARTUP);
 
+    /**
+     * Instantiates all of the required components without starting any of them.
+    */
+
     components.push_back(new sparkie::LedStripComponent());
     components.push_back(new sparkie::UltrasonicComponent());
     components.push_back(new sparkie::AirQualityComponent());
@@ -72,7 +80,11 @@ void setup_task(void* params)
     components.push_back(new sparkie::BatteryComponent());
     components.push_back(new sparkie::MotorsComponent());
     components.push_back(new sparkie::ServoComponent("head/tilt", SERVO_HEAD_TILT_PIN, SERVO_FREQUENCY));
-    components.push_back(new sparkie::StatsComponent());
+    
+    #ifdef SPARKIE_SHOW_STATS
+        components.push_back(new sparkie::StatsComponent());
+    #endif
+    
     components.push_back(new sparkie::ImuComponent());
     components.push_back(new sparkie::SystemComponent());
     
@@ -84,11 +96,19 @@ void setup_task(void* params)
             uros_agent->addComponent(dynamic_cast<sparkie::URosComponent*>(comp));
     }
 
+    /**
+     * Adding a delay between each component start to give them time to initialize everything correctly.
+    */
+
     for (auto &&comp :components)
     {
         comp->start();
         vTaskDelay(200 / portTICK_PERIOD_MS);
     }
+
+    /**
+     * Finally start agent component and waiting for a new connection
+    */
 
     uros_agent->start();
 
@@ -97,6 +117,7 @@ void setup_task(void* params)
 
 int main()
 {
+    // Wait for usb to be recognized correctly.
     sleep_ms(2000);
 
     TaskHandle_t task;

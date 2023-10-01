@@ -60,11 +60,6 @@ Motor::Motor(uint pin_pwm, uint pin_a, uint pin_b, uint enc_a, uint enc_b)
 
 }
 
-MotorState Motor::getCurrentState()
-{
-    return this->state;
-}
-
 void Motor::setSpeed(double rpm)
 {
     auto goal_rpm = clamp(rpm, -MOTOR_SOFT_MAX_RPM, MOTOR_SOFT_MAX_RPM);
@@ -197,7 +192,7 @@ void MotorsComponent::init()
     
     gpio_init(MOTORS_ENABLE_PIN);
     gpio_set_dir(MOTORS_ENABLE_PIN, GPIO_OUT);
-    this->setState(true);
+    gpio_put(MOTORS_ENABLE_PIN, GPIO_HIGH);
 
     // 0 - Left
     // 1 - Right
@@ -212,12 +207,6 @@ void MotorsComponent::init()
         MOTOR_B0_PIN, MOTOR_B1_PIN, 
         MOTOR_B_ENC0_PIN, MOTOR_B_ENC1_PIN
     ));
-}
-
-void MotorsComponent::setState(bool state)
-{
-    this->enabled = state;
-    gpio_put(MOTORS_ENABLE_PIN, state);
 }
 
 Motor* MotorsComponent::getMotorFromEncoderPin(uint pin)
@@ -259,13 +248,6 @@ void MotorsComponent::rosInit()
     this->wheel_vels_msg.velocity_left = 0;
     this->wheel_vels_msg.velocity_right = 0;
     
-}
-
-void MotorsComponent::onStateMessage(URosComponent* component, const void* msg_in)
-{
-    auto msg = (const std_msgs__msg__Bool*) msg_in;
-    auto motors_comp = (MotorsComponent*) component;
-    motors_comp->setState(msg->data);
 }
 
 void MotorsComponent::onVelMessage(URosComponent* component, const void* msg_in)

@@ -16,7 +16,6 @@ namespace sparkie
 {
     class MotorsComponent;
     
-
     typedef struct 
     {
         uint pin_a;
@@ -31,18 +30,44 @@ namespace sparkie
         STILL
     };
 
+    /**
+     * @brief Abstraction of a real hardware motor
+     * 
+     * This class monitors and controls current motor speed.
+     * A simple PID controller is used to keep the desired speed (in rpm).
+    */
     class Motor
     {
     public:
         friend class MotorsComponent;
 
+        /**
+         * @brief Initializes pwm io and gpio io stuff.
+         * 
+         * It also enables one of the hall sensor pin interrupt so when signal goes either high or low, <br> 
+         * Motor::onInterrupt function is called.
+        */
         Motor(uint pin_pwm, uint pin_a, uint pin_b, uint enc_a, uint enc_b);
-        MotorState getCurrentState();
+
+        /**
+         * @brief changes PID goal rpm and resets current PID error values.
+        */
         void setSpeed(double rpm);
+
+        /**
+         * @brief Calculates current motor rpm by checking motor pulses and updates PID rpm value
+        */
         void update(double delta_time);
+
+        /**
+         * @brief Interrupt function called every time one of the hall effect sensors is changing signal output.
+        */
         static void onInterrupt(uint gpio, uint32_t event_mask);
     private:
 
+        /**
+         * @brief Changes pwm duty cycle and turns motor pins on and off accordingly to rpm sign.  
+        */
         void setRawSpeed(double rpm);
 
         double rotation; // revolutions
@@ -60,6 +85,11 @@ namespace sparkie
         MotorState state;
     };
 
+    /**
+     * @brief Component for managing the two used motors.
+     * 
+     * It will send a message containing motor's velocities and also receives /cmd_vel messages.
+    */
     class MotorsComponent : public URosComponent
     {
     public:
@@ -68,17 +98,17 @@ namespace sparkie
         MotorsComponent();
         virtual uint8_t getHandlesNum();
         
-        void setState(bool state);
+        /**
+         * @brief Searches for a motor that has a particular encoder pin associated with.
+        */
         static Motor* getMotorFromEncoderPin(uint pin);
 
     protected:
         void rosInit();
-
     private:
         
         static void onVelMessage(URosComponent* component, const void* msg_in);
-        static void onStateMessage(URosComponent* component, const void* msg_in);
-
+        
         virtual void init();
         virtual void loop(TickType_t* xLastWakeTime);
         virtual void safeStop();

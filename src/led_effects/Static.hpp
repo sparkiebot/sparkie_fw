@@ -4,6 +4,9 @@
 
 namespace sparkie::visuals
 {
+    /**
+     * @brief Displays the specified color.
+    */
     class Static : public StripEffect
     {
     public:

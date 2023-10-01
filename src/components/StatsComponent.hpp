@@ -7,6 +7,11 @@
 
 namespace sparkie
 {
+    /**
+     * @brief Component responsible of sending all tasks stats. (Optional)
+     * If a particular macro definition is used, <br> 
+     * StatsComponent will send cpu usage and memory usage data for every running component
+    */
     class StatsComponent : public URosComponent
     {
     public:
@@ -19,6 +24,10 @@ namespace sparkie
         virtual void init();
         virtual void loop(TickType_t* xLastWakeTime);
 
+        /**
+         * Calculates resources usage by checking an array containing every task.
+         * This array will have a fixed predefined size.
+        */
         void calculateCPUData();
         void calculateMemData();
 

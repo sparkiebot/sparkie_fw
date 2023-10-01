@@ -5,6 +5,11 @@
 
 namespace sparkie
 {
+    /**
+     * @brief Component used for rebooting board either normally or in programming mode.
+     * 0 means normal mode.
+     * 1 means programming mode.
+    */
     class SystemComponent : public URosComponent
     {
     public:

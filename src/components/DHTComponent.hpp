@@ -13,13 +13,16 @@ namespace sparkie
         float temp;
         float hum;
     } DhtData;
+    
+    /**
+     * Component for publishing temperature and humidity data.
+    */
     class DHTComponent : public URosComponent
     {
     public:
         DHTComponent();
     protected:
         virtual void rosInit();
-        
     private:
         virtual void init();
         virtual void loop(TickType_t* xLastWakeTime);

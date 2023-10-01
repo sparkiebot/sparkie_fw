@@ -8,6 +8,11 @@ double clamp(double value, double min, double max);
 namespace sparkie
 {
 
+    /**
+     * @brief Simple implementation of a PID controller.
+     * 
+     * Value is also clamped between a minimum and a maximum value.
+    */
     class Pid
     {
     public:

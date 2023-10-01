@@ -4,6 +4,9 @@
 
 namespace sparkie::visuals
 {
+    /**
+     * @brief Makes a fade-in-out effect with the specified color and speed.
+    */
     class FadeInOut : public StripEffect
     {
     public:

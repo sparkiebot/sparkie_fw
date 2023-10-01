@@ -38,7 +38,10 @@
 #define RPM_TO_RADS 0.10472
 
 #define SPARKIE_VIS_DEBUG(ms) gpio_put(LED_PIN, 1); vTaskDelay(ms / portTICK_PERIOD_MS); gpio_put(LED_PIN, 0);
-    
+
+// Use this define if you wanna see stats published
+//#define SPARKIE_SHOW_STATS
+
 #define LED_BATTERY_LAYER 0 
 #define LED_NOTIFY_LAYER 1
 

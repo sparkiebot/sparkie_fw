@@ -10,6 +10,9 @@ namespace sparkie
         ERROR = 2
     };
 
+    /**
+     * Handy class for managing buzzer and make it play a set of predefined sounds (BuzzerAction).
+    */
     class BuzzerComponent
     {
     public:

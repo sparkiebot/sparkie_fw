@@ -19,7 +19,7 @@ namespace sparkie
     {
     public:
         friend class AgentComponent;
-
+        
         LoggerComponent();
 
         static void log(LogLevel level, std::string msg, 
@@ -27,6 +27,9 @@ namespace sparkie
     protected:
         void rosInit();
     private:
+        /**
+         * These task related functions are not really used as logger component will publish messages on request.
+        */
         virtual void init();
         virtual void loop(TickType_t* xLastWakeTime);
 

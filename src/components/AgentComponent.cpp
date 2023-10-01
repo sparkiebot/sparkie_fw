@@ -276,7 +276,7 @@ void AgentComponent::run()
         }
 
         /*
-            Stop anyithing critical if connection crashes.
+            Stop anything critical if connection crashes.
         */
         for (auto &&comp : this->components)
         {

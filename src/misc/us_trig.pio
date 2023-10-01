@@ -1,3 +1,5 @@
+; Adapted code from https://github.com/GitJer/Some_RPI-Pico_stuff/blob/main/HCSR04/HCSR04.pio
+
 ; Description of the used algorithm
 ;
 ; start:
@@ -33,10 +35,6 @@
 ;       7500000 clock cycles = 11100100111000011100000, round down to 11100 + 18 * 0
 ;
 ; Go back to start
-
-
-; Using code from https://github.com/GitJer/Some_RPI-Pico_stuff/blob/main/HCSR04/HCSR04.pio
-
 
 .program us_trig
 

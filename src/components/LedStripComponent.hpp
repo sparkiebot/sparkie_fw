@@ -13,6 +13,11 @@
 namespace sparkie
 {
 
+    /**
+     * LedStrip states
+     * 
+     * Each state is associated with a specific effect specified in the corresponding source file
+    */
     enum class LedStripMode
     {
         Off = -1,
@@ -31,12 +36,25 @@ namespace sparkie
 
     };
 
+    /**
+     * Component for handling all ledstripmodes.
+     * It uses a layered rendering to display multiple ledstrip effects on the same strip.
+    */
     class LedStripComponent : public URosComponent
     {
     public:
         LedStripComponent();
         static LedStripComponent* getInstance();
         virtual uint8_t getHandlesNum();
+
+        /**
+         * This method sets the specified mode at the specified index (layer).
+         * Possible layers are three:
+         * BATTERY_LAYER = 0
+         * NOTIFY_:AYER = 1
+         * MISC_LAYER = 2
+         * Once set, the new effect is reset.
+        */
         void setMode(const LedStripMode mode, uint8_t index = LED_NOTIFY_LAYER);
         const LedStripMode getMode(uint8_t index);
         
@@ -45,7 +63,15 @@ namespace sparkie
     private:
 
         virtual void init();
+
+        /**
+         * Updates current ledstrip effect states.
+        */
         virtual void loop(TickType_t* xLastWakeTime);
+        
+        /**
+         * It shutdowns all the leds on safe stop.
+        */
         virtual void safeStop();
 
         static void onMessage(URosComponent* component, const void* msg_in);
