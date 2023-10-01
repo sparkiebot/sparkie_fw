@@ -9,7 +9,7 @@
 namespace sparkie
 {
     /**
-     * @brief Abstract rapresentation of a freertos task.
+     * @brief Abstract representation of a freertos task.
      * 
      * It includes some methods for handling current state. <br>
     */
@@ -37,7 +37,7 @@ namespace sparkie
         */
         virtual void safeStop();
 
-        uint getStakHighWater();
+        uint getStackHighWater();
         TaskHandle_t getTaskHandle();
         UBaseType_t getRunningCore();
 
