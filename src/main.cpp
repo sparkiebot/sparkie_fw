@@ -9,7 +9,7 @@
 #include <hardware/i2c.h>
 #include <hardware/watchdog.h>
 
-#include "components/AgentComponent.hpp"
+#include "components/agent_component/AgentComponent.hpp"
 #include "components/SystemComponent.hpp"
 #include "components/StatsComponent.hpp"
 #include "components/ImuComponent.hpp"
