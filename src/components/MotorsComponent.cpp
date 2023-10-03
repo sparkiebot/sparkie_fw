@@ -192,7 +192,7 @@ void MotorsComponent::init()
     
     gpio_init(MOTORS_ENABLE_PIN);
     gpio_set_dir(MOTORS_ENABLE_PIN, GPIO_OUT);
-    gpio_put(MOTORS_ENABLE_PIN, GPIO_HIGH);
+    gpio_put(MOTORS_ENABLE_PIN, 1);
 
     // 0 - Left
     // 1 - Right
