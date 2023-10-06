@@ -26,9 +26,9 @@
 // Frame names
 #define UROS_BASE_FRAME "base_link"
 #define UROS_ULTRASONIC_FRAME "us_"
-#define UROS_BOARD_FRAME "board"
+#define UROS_BOARD_FRAME "board_link"
 #define UROS_ODOM_FRAME "odom"
-#define UROS_IMU_FRAME "imu"
+#define UROS_IMU_FRAME "imu_link"
 
 // Hardware related
 
