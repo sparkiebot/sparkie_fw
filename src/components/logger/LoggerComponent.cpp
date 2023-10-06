@@ -1,6 +1,6 @@
 #include "LoggerComponent.hpp"
 #include <iostream>
-#include "../sparkie_defs.hpp"
+#include "../../sparkie_defs.hpp"
 #include <micro_ros_utilities/string_utilities.h>
 #include <rmw_microros/rmw_microros.h>
 

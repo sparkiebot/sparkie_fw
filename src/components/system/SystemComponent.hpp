@@ -1,6 +1,6 @@
 #pragma once
 
-#include "URosComponent.hpp"
+#include "../uros/URosComponent.hpp"
 #include <std_msgs/msg/u_int8.h>
 
 namespace sparkie

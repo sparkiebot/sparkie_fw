@@ -1,6 +1,6 @@
 #pragma once
 
-#include "URosComponent.hpp"
+#include "../uros/URosComponent.hpp"
 #include <icm20689pico/icm20689pico.h>
 #include <sensor_msgs/msg/imu.h>
 

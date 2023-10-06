@@ -10,7 +10,7 @@
 #include <rcl_interfaces/msg/log.h>
 #include <std_msgs/msg/u_int8.h>
 
-#include "Component.hpp"
+#include "../Component.hpp"
 #include <semphr.h>
 #include <timers.h>
 

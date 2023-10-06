@@ -1,7 +1,7 @@
 #include "AirQualityComponent.hpp"
-#include "../sparkie_defs.hpp"
-#include "../config.hpp"
-#include "LoggerComponent.hpp"
+#include "../../sparkie_defs.hpp"
+#include "../../config.hpp"
+#include "../logger/LoggerComponent.hpp"
 
 #include <hardware/i2c.h>
 

@@ -2,7 +2,7 @@
 #include "colors.hpp"
 #include "../config.hpp"
 #include <pico/stdlib.h>
-#include "../components/AgentComponent.hpp"
+#include "../components/agent/AgentComponent.hpp"
 
 using namespace sparkie::visuals;
 

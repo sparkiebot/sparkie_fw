@@ -1,7 +1,7 @@
 #pragma once
 
-#include "URosComponent.hpp"
-#include "../config.hpp"
+#include "../uros/URosComponent.hpp"
+#include "../../config.hpp"
 
 #include <picopwm.h>
 

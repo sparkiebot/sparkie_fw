@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Component.hpp"
-#include "AgentComponent.hpp"
+#include "../Component.hpp"
+#include "../agent/AgentComponent.hpp"
 
 #include <rcl/node.h>
 #include <rcl/publisher.h>

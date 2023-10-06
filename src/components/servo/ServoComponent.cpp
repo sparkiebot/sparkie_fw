@@ -4,7 +4,7 @@
 #include <hardware/pwm.h>
 #include <hardware/clocks.h>
 
-#include "../sparkie_defs.hpp"
+#include "../../sparkie_defs.hpp"
 
 #include <iostream>
 

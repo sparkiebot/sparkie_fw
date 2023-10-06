@@ -1,6 +1,6 @@
 #include "StatsComponent.hpp"
-#include "../sparkie_defs.hpp"
-#include "../config.hpp"
+#include "../../sparkie_defs.hpp"
+#include "../../config.hpp"
 #include <micro_ros_utilities/string_utilities.h>
 #include <malloc.h>
 #include <pico/stdlib.h>

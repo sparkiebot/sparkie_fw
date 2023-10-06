@@ -1,7 +1,7 @@
 #include "ImuComponent.hpp"
-#include "LoggerComponent.hpp"
-#include "../sparkie_defs.hpp"
-#include "../config.hpp"
+#include "../logger/LoggerComponent.hpp"
+#include "../../sparkie_defs.hpp"
+#include "../../config.hpp"
 #include <micro_ros_utilities/string_utilities.h>
 #include <chrono>
 #include <iostream>

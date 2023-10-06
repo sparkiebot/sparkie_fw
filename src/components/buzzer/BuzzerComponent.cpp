@@ -1,8 +1,8 @@
 #include "BuzzerComponent.hpp"
 #include <FreeRTOS.h>
 #include <task.h>
-#include "../config.hpp"
-#include "../sparkie_defs.hpp"
+#include "../../config.hpp"
+#include "../../sparkie_defs.hpp"
 #include <pico/stdlib.h>
 #include <hardware/pwm.h>
 #include <limits.h>

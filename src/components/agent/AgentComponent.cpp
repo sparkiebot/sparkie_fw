@@ -1,13 +1,13 @@
 #include "AgentComponent.hpp"
-#include "URosComponent.hpp"
-#include "../config.hpp"
-#include "../sparkie_defs.hpp"
+#include "../uros/URosComponent.hpp"
+#include "../../config.hpp"
+#include "../../sparkie_defs.hpp"
 
 #include <pico/bootrom.h>
 
-#include "LoggerComponent.hpp"
-#include "BuzzerComponent.hpp"
-#include "LedStripComponent.hpp"
+#include "../logger/LoggerComponent.hpp"
+#include "../buzzer/BuzzerComponent.hpp"
+#include "../led_strip/LedStripComponent.hpp"
 
 #include <pico/stdlib.h>
 #include <pico/multicore.h>
@@ -22,7 +22,7 @@
 #include <rcl/error_handling.h>
 
 #ifdef UROS_UART
-    #include "../transports/pico_uart_transport.h"
+    #include "../../transports/pico_uart_transport.h"
 #else
     #ifdef UROS_USB
         #include "../transports/pico_usb_transport.h"

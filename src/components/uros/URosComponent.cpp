@@ -1,10 +1,10 @@
 #include "URosComponent.hpp"
 #include <iostream>
 #include "pico/stdlib.h"
-#include "../config.hpp"
-#include "../sparkie_defs.hpp"
+#include "../../config.hpp"
+#include "../../sparkie_defs.hpp"
 
-#include "LoggerComponent.hpp"
+#include "../logger/LoggerComponent.hpp"
 
 using namespace sparkie;
 

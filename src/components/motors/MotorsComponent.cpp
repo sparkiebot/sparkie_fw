@@ -1,6 +1,6 @@
 #include "MotorsComponent.hpp"
 #include <iostream>
-#include "../sparkie_defs.hpp"
+#include "../../sparkie_defs.hpp"
 #include <rmw_microros/rmw_microros.h>
 #include <micro_ros_utilities/string_utilities.h>
 #include <cmath>
@@ -9,7 +9,7 @@
 #include <hardware/pwm.h>
 #include <algorithm>
 
-#include "LoggerComponent.hpp"
+#include "../logger/LoggerComponent.hpp"
 
 using namespace sparkie;
 

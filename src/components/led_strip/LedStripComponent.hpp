@@ -1,13 +1,13 @@
 #pragma once
 
-#include "URosComponent.hpp"
-#include "../config.hpp"
-#include "../sparkie_defs.hpp"
+#include "../uros/URosComponent.hpp"
+#include "../../config.hpp"
+#include "../../sparkie_defs.hpp"
 #include <array>
 #include <map>
 #include <std_msgs/msg/u_int8.h>
 #include <PicoLed.hpp>
-#include "../led_effects/StripEffect.hpp"
+#include "../../led_effects/StripEffect.hpp"
 
 
 namespace sparkie

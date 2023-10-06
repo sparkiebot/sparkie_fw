@@ -1,5 +1,5 @@
 #include "Component.hpp"
-#include "StatsComponent.hpp"
+#include "stats/StatsComponent.hpp"
 #include <vector>
 #include "pico/stdlib.h"
 #include <iostream>

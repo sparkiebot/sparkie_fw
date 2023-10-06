@@ -1,7 +1,7 @@
 #include "SystemComponent.hpp"
 
-#include "../config.hpp"
-#include "../sparkie_defs.hpp"
+#include "../../config.hpp"
+#include "../../sparkie_defs.hpp"
 
 #include <pico/bootrom.h>
 #include <hardware/watchdog.h>
