@@ -85,7 +85,7 @@
 // Motors
 #define MOTORS_NUM 2
 #define MOTORS_WHEEL_RADIUS 0.0335 // meters
-#define MOTORS_WHEEL_SEPARATION 0.243 // meters
+#define MOTORS_WHEEL_SEPARATION 0.2182 // meters
 
 #define MOTOR_SOFT_MAX_RPM 120
 #define MOTOR_MAX_RPM 178
