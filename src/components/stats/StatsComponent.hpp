@@ -1,6 +1,6 @@
 #pragma once
 
-#include "URosComponent.hpp"
+#include "../uros/URosComponent.hpp"
 #include <map>
 #include <diagnostic_msgs/msg/diagnostic_status.h>
 #include <diagnostic_msgs/msg/key_value.h>

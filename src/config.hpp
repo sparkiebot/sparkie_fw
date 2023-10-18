@@ -26,9 +26,9 @@
 // Frame names
 #define UROS_BASE_FRAME "base_link"
 #define UROS_ULTRASONIC_FRAME "us_"
-#define UROS_BOARD_FRAME "board"
+#define UROS_BOARD_FRAME "board_link"
 #define UROS_ODOM_FRAME "odom"
-#define UROS_IMU_FRAME "imu"
+#define UROS_IMU_FRAME "imu_link"
 
 // Hardware related
 
@@ -85,7 +85,7 @@
 // Motors
 #define MOTORS_NUM 2
 #define MOTORS_WHEEL_RADIUS 0.0335 // meters
-#define MOTORS_WHEEL_SEPARATION 0.243 // meters
+#define MOTORS_WHEEL_SEPARATION 0.2182 // meters
 
 #define MOTOR_SOFT_MAX_RPM 120
 #define MOTOR_MAX_RPM 178

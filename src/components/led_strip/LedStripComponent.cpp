@@ -1,11 +1,11 @@
 #include "LedStripComponent.hpp"
-#include "LoggerComponent.hpp"
+#include "../logger/LoggerComponent.hpp"
 #include <iostream>
-#include "../sparkie_defs.hpp"
-#include "../led_effects/colors.hpp"
-#include "../led_effects/FadeInOut.hpp"
-#include "../led_effects/Static.hpp"
-#include "../led_effects/Ring.hpp"
+#include "../../sparkie_defs.hpp"
+#include "../../led_effects/colors.hpp"
+#include "../../led_effects/FadeInOut.hpp"
+#include "../../led_effects/Static.hpp"
+#include "../../led_effects/Ring.hpp"
 
 using namespace sparkie;
 

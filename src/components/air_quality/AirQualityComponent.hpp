@@ -1,7 +1,7 @@
 #pragma once
 
-#include "URosComponent.hpp"
-#include "DHTComponent.hpp"
+#include "../uros/URosComponent.hpp"
+#include "../dht/DHTComponent.hpp"
 #include <std_msgs/msg/u_int16.h>
 #include <queue.h>
 

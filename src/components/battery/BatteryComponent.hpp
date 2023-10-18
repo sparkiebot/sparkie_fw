@@ -1,8 +1,8 @@
 #pragma once
 
-#include "URosComponent.hpp"
+#include "../uros/URosComponent.hpp"
 #include <sensor_msgs/msg/battery_state.h>
-#include "../config.hpp"
+#include "../../config.hpp"
 #include <array>
 
 namespace sparkie

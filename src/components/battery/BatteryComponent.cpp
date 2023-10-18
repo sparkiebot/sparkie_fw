@@ -1,13 +1,13 @@
 #include "BatteryComponent.hpp"
-#include "../sparkie_defs.hpp"
-#include "../config.hpp"
+#include "../../sparkie_defs.hpp"
+#include "../../config.hpp"
 #include <micro_ros_utilities/string_utilities.h>
 #include <rmw_microros/rmw_microros.h>
 #include <iostream>
 #include <cmath>
 #include "hardware/adc.h"
 
-#include "LedStripComponent.hpp"
+#include "../led_strip/LedStripComponent.hpp"
 
 using namespace sparkie;
 

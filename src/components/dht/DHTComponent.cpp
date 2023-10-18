@@ -1,7 +1,7 @@
 #include "DHTComponent.hpp"
-#include "../sparkie_defs.hpp"
-#include "../config.hpp"
-#include "AirQualityComponent.hpp"
+#include "../../sparkie_defs.hpp"
+#include "../../config.hpp"
+#include "../air_quality/AirQualityComponent.hpp"
 #include <micro_ros_utilities/string_utilities.h>
 #include <rmw_microros/rmw_microros.h>
 #include <iostream>

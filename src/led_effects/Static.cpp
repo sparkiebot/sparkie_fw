@@ -1,7 +1,7 @@
 #include "Static.hpp"
 #include <pico/stdlib.h>
 #include "../config.hpp"
-#include "../components/AgentComponent.hpp"
+#include "../components/agent/AgentComponent.hpp"
 
 using namespace sparkie::visuals;
 

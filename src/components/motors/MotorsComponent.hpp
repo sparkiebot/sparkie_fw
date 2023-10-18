@@ -1,8 +1,8 @@
 #pragma once
 
-#include "URosComponent.hpp"
-#include "../config.hpp"
-#include "../misc/Pid.hpp"
+#include "../uros/URosComponent.hpp"
+#include "../../config.hpp"
+#include "../../misc/Pid.hpp"
 
 #include <geometry_msgs/msg/twist.h>
 #include <irobot_create_msgs/msg/wheel_vels.h>

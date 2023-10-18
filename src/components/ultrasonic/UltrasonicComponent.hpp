@@ -1,8 +1,8 @@
 #pragma once
 
-#include "URosComponent.hpp"
-#include "hardware/pio.h"
-#include "../config.hpp"
+#include "../uros/URosComponent.hpp"
+#include <hardware/pio.h>
+#include "../../config.hpp"
 #include <sensor_msgs/msg/range.h>
 
 namespace sparkie

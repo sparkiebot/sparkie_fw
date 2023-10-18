@@ -1,6 +1,6 @@
 #pragma once
 
-#include "URosComponent.hpp"
+#include "../uros/URosComponent.hpp"
 #include <dht.h>
 #include <sensor_msgs/msg/temperature.h>
 #include <sensor_msgs/msg/relative_humidity.h>
