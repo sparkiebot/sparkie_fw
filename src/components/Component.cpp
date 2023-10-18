@@ -15,11 +15,6 @@ Component::Component(std::string_view name, UBaseType_t coreid, UBaseType_t prio
     this->running = false;
 }
 
-Component::~Component()
-{
-    this->stop();
-}
-
 void Component::stop()
 {
     this->safeStop();
@@ -36,21 +31,6 @@ uint Component::getStackHighWater()
         return uxTaskGetStackHighWaterMark(this->xHandle);
     else
         return 0;
-}
-
-configSTACK_DEPTH_TYPE Component::getMaxStackSize()
-{
-    return 1000;
-}
-
-TaskHandle_t Component::getTaskHandle()
-{
-    return this->xHandle;
-}
-
-const std::string& Component::getName()
-{
-    return this->name;
 }
 
 bool Component::start()
@@ -112,15 +92,4 @@ void Component::vTask(void* params)
     
     if(component != NULL)
         component->run();
-}
-
-
-UBaseType_t Component::getRunningCore()
-{
-    return sio_hw->cpuid;
-}
-
-void Component::safeStop()
-{
-
 }
