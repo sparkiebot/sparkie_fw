@@ -7,14 +7,6 @@
 
 using namespace sparkie;
 
-Component::Component(std::string_view name, UBaseType_t coreid, UBaseType_t priority)
-{
-    this->name = std::string(name);
-    this->core = coreid;
-    this->priority = priority;
-    this->running = false;
-}
-
 void Component::stop()
 {
     this->safeStop();
