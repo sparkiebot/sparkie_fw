@@ -25,7 +25,7 @@ void Component::stop()
     }
 }
 
-uint Component::getStackHighWater()
+uint Component::getStackHighWater() const
 {
     if(this->xHandle != NULL)
         return uxTaskGetStackHighWaterMark(this->xHandle);

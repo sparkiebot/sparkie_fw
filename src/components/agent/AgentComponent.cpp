@@ -13,7 +13,6 @@
 #include <pico/multicore.h>
 #include <hardware/watchdog.h>
 #include <iostream>
-#include <format>
 
 #include <hardware/i2c.h>
 
