@@ -22,13 +22,8 @@ namespace sparkie
          * @param coreid Core identifier, CORE0=0x01, CORE1=0x02. Task can also be run on two core in parallel using 0x00
          * @param priority Avoid using same priorities for tasks running on the same core.
         */
-<<<<<<< HEAD
-        Component(std::string_view name, UBaseType_t coreid = 0x01, UBaseType_t priority = tskIDLE_PRIORITY);
-        virtual ~Component(){ this->stop(); };
-=======
         Component(std::string_view & name, UBaseType_t & coreid = 0x01, UBaseType_t priority = tskIDLE_PRIORITY):name(name), core(coreid),priority(priority), running(false){};
         virtual ~Component(){this->stop()};
->>>>>>> e9acb40addb4f411cc4b73ec469a62ece2ba1636
 
         /**
          * Starts task and adds its reference to the task stats list
