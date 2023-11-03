@@ -7,18 +7,9 @@ ENV TOOLCHAINDIR="arm-gnu-toolchain-11.3.rel1-x86_64-arm-none-eabi"
 # [Optional] Uncomment this section to install additional packages.
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && apt-get -y install --no-install-recommends unzip cmake build-essential wget ca-certificates \
-    gdb-multiarch automake autoconf libtool libftdi-dev libusb-1.0-0-dev pkg-config clang-format libhidapi-dev
+    gcc-arm-none-eabi gdb-multiarch automake autoconf libtool libftdi-dev libusb-1.0-0-dev pkg-config clang-format libhidapi-dev
 
 WORKDIR /apps
-
-RUN echo "$TOOLCHAINURL/$TOOLCHAINARCHIVE"
-
-RUN wget $TOOLCHAINURL/$TOOLCHAINARCHIVE 
-RUN tar xf $TOOLCHAINARCHIVE
-
-RUN mv $TOOLCHAINDIR gcc-arm-none && \
-    rm $TOOLCHAINARCHIVE
-ENV PATH=$PATH:/apps/gcc-arm-none/bin
 
 RUN git clone -b master https://github.com/raspberrypi/pico-sdk.git --depth=1 && git -C pico-sdk submodule update --init
 ENV PICO_SDK_PATH=/apps/pico-sdk
