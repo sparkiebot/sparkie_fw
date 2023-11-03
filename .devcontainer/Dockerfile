@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 FROM mcr.microsoft.com/devcontainers/cpp:1-debian-11
 
 ENV TOOLCHAINURL="https://developer.arm.com/-/media/Files/downloads/gnu/11.3.rel1/binrel"

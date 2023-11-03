@@ -4,12 +4,9 @@
 	"name": "C++",
 	"build": {
 		"dockerfile": "Dockerfile"
-<<<<<<< HEAD
-=======
 	},
 	"features": {
 		"ghcr.io/devcontainers-contrib/features/apt-packages:1": {}
->>>>>>> e9acb40addb4f411cc4b73ec469a62ece2ba1636
 	}
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
