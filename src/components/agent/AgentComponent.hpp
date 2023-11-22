@@ -15,7 +15,6 @@
 #include <timers.h>
 
 
-#include <source_location>
 namespace sparkie
 {
     class URosComponent;
@@ -80,7 +79,7 @@ namespace sparkie
         friend class SystemComponent;
         
         /**
-         * @brief Adds the component and assings a parent node to it.
+         * @brief Adds the component and assign a parent node to it.
          * @param component an allocated URosComponent 
         */
         void addComponent(URosComponent* component);

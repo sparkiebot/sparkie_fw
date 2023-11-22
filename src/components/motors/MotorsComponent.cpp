@@ -22,6 +22,7 @@ template <typename T> int sign(T val) {
 Motor::Motor(uint pin_pwm, uint pin_a, uint pin_b, uint enc_a, uint enc_b) 
     : pid(MOTOR_PID_KP, MOTOR_PID_KI, MOTOR_PID_KD, -MOTOR_MAX_RPM, MOTOR_MAX_RPM )
 {
+
     this->pin_a = pin_a;
     this->pin_b = pin_b;
     this->pin_pwm = pin_pwm;
@@ -278,7 +279,7 @@ void MotorsComponent::loop(TickType_t* xLastWakeTime)
     {
         auto delta_time = (current_time - lastUpdate) / (1000.0);
         
-        for (size_t i = 0; i < MOTORS_NUM; i++)
+        for (size_t i = 0; i < MOTORS_NUM; ++i)
         {
             this->motors[i].update(delta_time);
         }        

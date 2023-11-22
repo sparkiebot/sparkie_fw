@@ -7,19 +7,6 @@
 
 using namespace sparkie;
 
-Component::Component(std::string_view name, UBaseType_t coreid, UBaseType_t priority)
-{
-    this->name = std::string(name);
-    this->core = coreid;
-    this->priority = priority;
-    this->running = false;
-}
-
-Component::~Component()
-{
-    this->stop();
-}
-
 void Component::stop()
 {
     this->safeStop();
@@ -30,27 +17,12 @@ void Component::stop()
     }
 }
 
-uint Component::getStackHighWater()
+uint Component::getStackHighWater() const
 {
     if(this->xHandle != NULL)
         return uxTaskGetStackHighWaterMark(this->xHandle);
     else
         return 0;
-}
-
-configSTACK_DEPTH_TYPE Component::getMaxStackSize()
-{
-    return 1000;
-}
-
-TaskHandle_t Component::getTaskHandle()
-{
-    return this->xHandle;
-}
-
-const std::string& Component::getName()
-{
-    return this->name;
 }
 
 bool Component::start()
@@ -112,15 +84,4 @@ void Component::vTask(void* params)
     
     if(component != NULL)
         component->run();
-}
-
-
-UBaseType_t Component::getRunningCore()
-{
-    return sio_hw->cpuid;
-}
-
-void Component::safeStop()
-{
-
 }
