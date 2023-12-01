@@ -25,11 +25,13 @@
 
 #include "config.hpp"
 
+#include<array>
+
+
 template<typename Base, typename T>
 inline bool instanceof(const T *ptr) {
    return dynamic_cast<const Base*>(ptr) != nullptr;
 }
-
 /*
 This function adds a watchdog timer to the default idle function.
 If any tasks is still blocked, the board will restart automatically.
@@ -49,9 +51,7 @@ extern "C" {
 }
 
 void setup_task(void* params)
-{
-    std::vector<sparkie::Component*> components;
-
+{   
     /**
      * Initializing I2C port
     */
@@ -69,10 +69,31 @@ void setup_task(void* params)
     sparkie::BuzzerComponent::init();
     sparkie::BuzzerComponent::play(sparkie::PLAY_STARTUP);
 
-    /**
-     * Instantiates all of the required components without starting any of them.
-    */
+    std::vector<std::unique_ptr<sparkie::Component>> components;
 
+    components.emplace_back(std::make_unique<sparkie::LedStripComponent>());
+    components.emplace_back(std::make_unique<sparkie::UltrasonicComponent>());
+    components.emplace_back(std::make_unique<sparkie::AirQualityComponent>());
+    components.emplace_back(std::make_unique<sparkie::DHTComponent>());
+    components.emplace_back(std::make_unique<sparkie::BatteryComponent>());
+    components.emplace_back(std::make_unique<sparkie::MotorsComponent>());
+    components.emplace_back(std::make_unique<sparkie::ServoComponent>("head/tilt", SERVO_HEAD_TILT_PIN, SERVO_FREQUENCY));
+    
+    
+    #ifdef SPARKIE_SHOW_STATS
+        components.emplace_back(std::make_unique<sparkie::StatsComponent>());
+    #endif
+    
+  
+    components.emplace_back(std::make_unique<sparkie::ImuComponent>());
+    components.emplace_back(std::make_unique<sparkie::SystemComponent>());
+    
+    /*
+    std::vector<sparkie::Component*> components;
+    components.reserve(10);
+
+    // Instantiates all of the required components without starting any of them.
+     
     components.push_back(new sparkie::LedStripComponent());
     components.push_back(new sparkie::UltrasonicComponent());
     components.push_back(new sparkie::AirQualityComponent());
@@ -81,19 +102,22 @@ void setup_task(void* params)
     components.push_back(new sparkie::MotorsComponent());
     components.push_back(new sparkie::ServoComponent("head/tilt", SERVO_HEAD_TILT_PIN, SERVO_FREQUENCY));
     
+    
     #ifdef SPARKIE_SHOW_STATS
         components.push_back(new sparkie::StatsComponent());
     #endif
     
+  
     components.push_back(new sparkie::ImuComponent());
     components.push_back(new sparkie::SystemComponent());
-    
+    */
+
     auto uros_agent = new sparkie::AgentComponent();
 
-    for (auto &&comp :components)
+    for (auto && comp :components)
     {
-        if(instanceof<sparkie::URosComponent>(comp))
-            uros_agent->addComponent(dynamic_cast<sparkie::URosComponent*>(comp));
+        if(instanceof<sparkie::URosComponent>(comp.get()))
+            uros_agent->addComponent(dynamic_cast<sparkie::URosComponent*>(comp.get()));
     }
 
     /**
