@@ -51,6 +51,7 @@ void SystemComponent::onMessage(URosComponent* component, const void* msg_in)
 
     if(msg->data == 0)
     {
+        // It will reboot the board.
         watchdog_reboot(0, 0, 0);
     }
     else

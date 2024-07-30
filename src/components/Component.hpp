@@ -2,6 +2,7 @@
 
 #include <string>
 #include <FreeRTOS.h>
+#include "pico/stdlib.h"
 #include <task.h>
 #include <vector>
 #include "../misc/TaskRunTime.h"
@@ -21,8 +22,8 @@ namespace sparkie
          * @param coreid Core identifier, CORE0=0x01, CORE1=0x02. Task can also be run on two core in parallel using 0x00
          * @param priority Avoid using same priorities for tasks running on the same core.
         */
-        Component(std::string_view name, UBaseType_t coreid = 0x01, UBaseType_t priority = tskIDLE_PRIORITY);
-        virtual ~Component();
+        Component(std::string_view name, UBaseType_t coreid = 0x01, UBaseType_t priority = tskIDLE_PRIORITY):name(name), core(coreid),priority(priority), running(false){};
+        virtual ~Component(){ this->stop(); };
 
         /**
          * Starts task and adds its reference to the task stats list
@@ -35,18 +36,18 @@ namespace sparkie
          * This method is responsible of safely disposing any critical component. <br>
          * For example, it is used in MotorsComponent to stop motors.
         */
-        virtual void safeStop();
+        virtual void safeStop(){};
 
-        uint getStackHighWater();
-        TaskHandle_t getTaskHandle();
-        UBaseType_t getRunningCore();
+        uint getStackHighWater() const;
+        TaskHandle_t getTaskHandle() const { return this->xHandle; };
+        UBaseType_t getRunningCore() const { return sio_hw->cpuid; };
 
 
-        const std::string& getName();
+        const std::string& getName() const { return this->name; };
         
     protected:
     
-        virtual configSTACK_DEPTH_TYPE getMaxStackSize();
+        virtual configSTACK_DEPTH_TYPE getMaxStackSize() const { return 1000; };
         
         /**
          * Actual freertos task code.

@@ -61,3 +61,4 @@ add_compile_definitions(PICO_XOSC_STARTUP_DELAY_MULTIPLIER=64)
 
 
 add_compile_definitions(DEBUG)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")

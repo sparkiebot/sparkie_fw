@@ -2,6 +2,7 @@
 
 #include "../uros/URosComponent.hpp"
 #include "../../config.hpp"
+#include <source_location>
 
 namespace sparkie
 {
