@@ -7,9 +7,9 @@
 [submodule "lib/PicoLED"]
 	path = lib/PicoLED
 	url = https://github.com/ForsakenNGS/PicoLED.git
-[submodule "lib/pico_dht"]
-	path = lib/pico_dht
-	url = https://github.com/sparkiebot/pico_dht.git
 [submodule "lib/PicoPWM"]
 	path = lib/PicoPWM
 	url = https://github.com/sparkiebot/PicoPWM.git
+[submodule "lib/AhtPico"]
+	path = lib/AhtPico
+	url = https://github.com/gavinlyonsrepo/AHTXX_PICO.git
