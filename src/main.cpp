@@ -131,7 +131,7 @@ void setup_task(void* params)
     }
 
     /**
-     * Finally start agent component and waiting for a new connection
+     * Finally start agent component and wait for a new connection
     */
 
     uros_agent->start();
