@@ -57,7 +57,7 @@ The board once connected, spawns a node named `/sparkie/board` and makes availab
 Pull requests are welcome. For major changes, please open an issue first
 to discuss what you would like to change.
 
-Special thanks to @Filippo-Galli for helping me optimize the firmware software with his C++ optimization magic.
+Special thanks to [@Filippo-Galli](https://github.com/Filippo-Galli) for helping me optimize the firmware software with his C++ optimization magic.
 
 ## License
 
