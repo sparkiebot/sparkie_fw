@@ -1,9 +1,9 @@
-#include "pico_uart_transport.h"
 #include "pico/stdio/driver.h"
 #include "pico/stdio.h"
 #include "pico/stdio_usb.h"
 #include "pico/stdlib.h"
 #include <time.h>
+#include <tusb.h>
 
 #include <uxr/client/profile/transport/custom/custom_transport.h>
 
@@ -38,8 +38,7 @@ int clock_gettime(clockid_t unused, struct timespec *tp){
  * @return true if ok
  */
 bool pico_usb_transport_open(struct uxrCustomTransport * transport){
-	//Checks we have USB CDC connection
-	return stdio_usb_connected();
+    return true;
 }
 
 /***
@@ -51,6 +50,9 @@ bool pico_usb_transport_close(struct uxrCustomTransport * transport){
     return true;
 }
 
+
+
+
 /***
  * Write to the transport
  * @param transport
@@ -59,8 +61,10 @@ bool pico_usb_transport_close(struct uxrCustomTransport * transport){
  * @param err - error code
  * @return number of bytes written. <0 if error occurs
  */
-size_t pico_usb_transport_write(struct uxrCustomTransport * transport, const uint8_t *buf, size_t len, uint8_t *errcode){
-	stdio_usb.out_chars(buf, len);
+
+size_t pico_usb_transport_write(struct uxrCustomTransport * transport, const uint8_t *buf, size_t len, uint8_t *errcode)
+{
+    stdio_usb.out_chars(buf, len);
     return len;
 }
 
@@ -73,18 +77,21 @@ size_t pico_usb_transport_write(struct uxrCustomTransport * transport, const uin
  * @param err
  * @return returns number of bytes read. < 0 if error occurs
  */
-size_t pico_usb_transport_read(struct uxrCustomTransport * transport, uint8_t *buf, size_t len, int timeout, uint8_t *errcode){
+
+size_t pico_usb_transport_read(struct uxrCustomTransport * transport, uint8_t *buf, size_t len, int timeout, uint8_t *errcode)
+{
     uint64_t until_time_us = time_us_64() + timeout;
-    
+
     size_t read = 0;
-    while (time_us_64() < until_time_us){
-    	read = stdio_usb.in_chars(buf, len);
-    	if (read != 0){
-    		return read;
-    	}
+    while (time_us_64() < until_time_us)
+    {
+        read = stdio_usb.in_chars(buf, len);
+        if (read != 0)
+        {
+            return read;
+        }
 
-    	taskYIELD();
-
+        taskYIELD();
     }
 
     return 0;

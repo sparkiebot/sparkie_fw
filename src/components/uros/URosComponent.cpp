@@ -127,7 +127,12 @@ void URosComponent::addSubscription(
     usub.callback = callback;
 
     this->subscriptions.push_back(usub);
-    
+    /**
+     * Adds the subscription to the agent component executor.
+     * 
+     * Every time a new message is received, the generic callback URosComponent::onMessage is called.
+     * This function will then send the message to the subscriber's task via a queue.
+     */
     res = rclc_executor_add_subscription_with_context(
         &AgentComponent::getInstance()->executor,
         sub,
@@ -158,10 +163,6 @@ void URosComponent::onMessage(const void * msg_in, void * context)
     xQueueOverwrite(usub->sub_queue, &usub->msg);
 }
 
-/*
-Messages are sent to the agent component via a single length queue for each pubblisher as 
-publishing is not thread safe.
-*/
 void URosComponent::sendMessage(uint pub_index, const void* msg)
 {
     if(!AgentComponent::isConnected())
@@ -172,10 +173,6 @@ void URosComponent::sendMessage(uint pub_index, const void* msg)
     xQueueOverwrite(upub.pub_queue, &upub.msg);
 }
 
-/*
-Messages are being pulled from a queue because also subscription handling is not thread safe.
-Once a message is being received the corrisponding callback is invoked.
-*/
 void URosComponent::pollMessages()
 {
     if(!AgentComponent::isConnected())

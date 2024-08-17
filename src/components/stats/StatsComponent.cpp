@@ -41,12 +41,14 @@ void StatsComponent::rosInit()
 
     this->addPublisher(
         "cpu",
-        ROSIDL_GET_MSG_TYPE_SUPPORT(diagnostic_msgs, msg, DiagnosticStatus)
+        ROSIDL_GET_MSG_TYPE_SUPPORT(diagnostic_msgs, msg, DiagnosticStatus),
+        false
     );
 
     this->addPublisher(
         "memory",
-        ROSIDL_GET_MSG_TYPE_SUPPORT(diagnostic_msgs, msg, DiagnosticStatus)
+        ROSIDL_GET_MSG_TYPE_SUPPORT(diagnostic_msgs, msg, DiagnosticStatus),
+        false
     );
 
     this->cpu_msg.name = micro_ros_string_utilities_init("Sparkie Board Cpu");

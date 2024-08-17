@@ -154,5 +154,6 @@ void UltrasonicComponent::loop(TickType_t* xLastWakeTime)
         this->sendMessage(i, &this->ros_msg[i]);
     }
 
-    // Skipping the delay instruction as the maximum sensor output frequency is been used.
+    // No need to specify the delay time, as the delay is already done in readData.
+    // Sensor runs at 25Hz
 }

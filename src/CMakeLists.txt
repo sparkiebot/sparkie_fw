@@ -12,7 +12,7 @@ pico_generate_pio_header(${NAME} ${CMAKE_CURRENT_LIST_DIR}/misc/us_trig.pio)
 target_include_directories(${NAME} PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}
     ${CMAKE_CURRENT_LIST_DIR}/../lib/FreeRTOS-Kernel/include
-    ${CMAKE_CURRENT_LIST_DIR}/../lib/icm20689pico/include
+    ${CMAKE_CURRENT_LIST_DIR}/../lib/gy85/include
      )
 
 
@@ -27,10 +27,10 @@ target_link_libraries(${NAME}
      hardware_pio
      FreeRTOS-Kernel-Heap4
      microros
-     icm20689pico
+     gy85
      PicoLed
      PicoPWM
-     dht
+     pico_ahtxx
 	)
   
 target_compile_definitions(${NAME} PRIVATE
@@ -57,7 +57,7 @@ add_compile_definitions(USBD_PRODUCT="Sparkie Board")
 
 # Adding this compile option makes the board boot correctly when connected.
 # https://github.com/raspberrypi/pico-sdk/pull/457
-add_compile_definitions(PICO_XOSC_STARTUP_DELAY_MULTIPLIER=64) 
+# add_compile_definitions(PICO_XOSC_STARTUP_DELAY_MULTIPLIER=64) 
 
 
 add_compile_definitions(DEBUG)

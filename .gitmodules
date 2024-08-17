@@ -1,9 +1,6 @@
 [submodule "freertos_kernel"]
 	path = lib/FreeRTOS-Kernel
 	url = https://github.com/FreeRTOS/FreeRTOS-Kernel.git
-[submodule "icm20689pico"]
-	path = lib/icm20689pico
-	url = https://github.com/mattsays/icm20689pico.git
 [submodule "lib/PicoLED"]
 	path = lib/PicoLED
 	url = https://github.com/ForsakenNGS/PicoLED.git
@@ -13,3 +10,6 @@
 [submodule "lib/AhtPico"]
 	path = lib/AhtPico
 	url = https://github.com/gavinlyonsrepo/AHTXX_PICO.git
+[submodule "lib/gy85"]
+	path = lib/gy85
+	url = https://github.com/mattsays/gy85.git

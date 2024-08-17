@@ -9,7 +9,7 @@
 
 using namespace sparkie;
 
-LedStripComponent* LedStripComponent::instance;
+LedStripComponent* LedStripComponent::instance = nullptr;
 
 LedStripComponent::LedStripComponent() 
     : URosComponent("ledstrip", CORE1, LEDSTRIP_PRIORITY, UROS_LEDSTRIP_RATE), 
@@ -61,13 +61,11 @@ void LedStripComponent::init()
     this->modes.insert(std::make_pair(LedStripMode::Off, nullptr));
 
     // Battery Effects
-
     this->modes.insert(std::make_pair(LedStripMode::Charging, new visuals::FadeInOut(visuals::colors::ORANGE, 2.0f, true)));
     this->modes.insert(std::make_pair(LedStripMode::ChargeComplete, new visuals::FadeInOut(visuals::colors::GREEN, 2.0f, true)));
     this->modes.insert(std::make_pair(LedStripMode::LowBattery, new visuals::FadeInOut(visuals::colors::RED, 3.0f, true)));
     this->modes.insert(std::make_pair(LedStripMode::AbnormalCharging, new visuals::FadeInOut(visuals::colors::VIOLET, 3.0f, true)));
     
-
     // Notification effects
     this->modes.insert(std::make_pair(LedStripMode::Idle, new visuals::Static(visuals::colors::WHITE)));
     this->modes.insert(std::make_pair(LedStripMode::Good, new visuals::FadeInOut(visuals::colors::GREEN, 3.5f)));

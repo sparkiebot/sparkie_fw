@@ -7,17 +7,17 @@
 
 using namespace sparkie;
 
-QueueHandle_t AirQualityComponent::dht_queue;
+QueueHandle_t AirQualityComponent::aht_queue = nullptr;
 
 AirQualityComponent::AirQualityComponent() 
-    : URosComponent("co2_sensor", CORE1, AIRQUALITY_PRIORITY, UROS_AIRQUALITY_RATE)
+    : URosComponent("airq_sensor", CORE1, AIRQUALITY_PRIORITY, UROS_AIRQUALITY_RATE)
 {
 
 }
 
 void AirQualityComponent::init()
 {
-    dht_queue = xQueueCreate(1, sizeof(DhtData));
+    aht_queue = xQueueCreate(1, sizeof(AhtData));
     this->init_error = false;
 
     uint8_t id;
@@ -134,9 +134,9 @@ void AirQualityComponent::setEnvData(float temp, float hum)
 
 void AirQualityComponent::loop(TickType_t* xLastWakeTime)
 {
-    if(xQueueReceive(dht_queue, &this->dht_data, 0) != pdFALSE)
+    if(xQueueReceive(this->aht_queue, &this->aht_data, 0) != pdFALSE)
     {
-        this->setEnvData(this->dht_data.temp, this->dht_data.hum);
+        this->setEnvData(this->aht_data.temp, this->aht_data.hum);
     }
 
     if(this->isReady())

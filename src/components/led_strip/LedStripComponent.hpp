@@ -51,7 +51,7 @@ namespace sparkie
          * This method sets the specified mode at the specified index (layer).
          * Possible layers are three:
          * BATTERY_LAYER = 0
-         * NOTIFY_:AYER = 1
+         * NOTIFY_LAYER = 1
          * MISC_LAYER = 2
          * Once set, the new effect is reset.
         */
@@ -70,7 +70,7 @@ namespace sparkie
         virtual void loop(TickType_t* xLastWakeTime);
         
         /**
-         * It shutdowns all the leds on safe stop.
+         * It shutdowns all the leds.
         */
         virtual void safeStop();
 

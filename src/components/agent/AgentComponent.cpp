@@ -20,46 +20,16 @@
 #include <rmw_microros/rmw_microros.h>
 #include <rcl/error_handling.h>
 
-#ifdef UROS_UART
-    #include "../../transports/pico_uart_transport.h"
-#else
-    #ifdef UROS_USB
-        #include "../transports/pico_usb_transport.h"
-    #endif
-#endif
+#include "../../transports/pico_usb_transport.h"
 
 using namespace sparkie;
 
 
-sparkie::AgentComponent* sparkie::AgentComponent::instance;
+sparkie::AgentComponent* sparkie::AgentComponent::instance = nullptr;
 
 void blinkTask(TimerHandle_t timer)
 {
     SPARKIE_VIS_DEBUG(200);
-}
-
-
-// Executor Component
-
-URosExecutor::URosExecutor(rclc_executor_t* executor) 
-    : Component("uros_executor", CORE0, AGENT_PRIORITY-1)
-{
-    this->executor = executor;
-}
-
-void URosExecutor::run()
-{
-    auto lastTickTime = xTaskGetTickCount();
-    while (true)
-    {
-        if(rmw_uros_ping_agent(1, 200) != RCL_RET_OK)
-        {
-            AgentComponent::disconnect();
-            break;
-        }
-        rclc_executor_spin_some(this->executor, RCL_MS_TO_NS(100));
-        taskYIELD();
-    }
 }
 
 AgentComponent::AgentComponent() : Component("uros_agent", CORE0, AGENT_PRIORITY)
@@ -71,27 +41,15 @@ AgentComponent::AgentComponent() : Component("uros_agent", CORE0, AGENT_PRIORITY
     this->initialized = false;
     this->connected = false;
 
-    #ifdef UROS_UART
-        rmw_uros_set_custom_transport(
-            true,
-            NULL,
-            pico_uart_transport_open,
-            pico_uart_transport_close,
-            pico_uart_transport_write,
-            pico_uart_transport_read
-        );
-    #else
-    #ifdef UROS_USB
-        rmw_uros_set_custom_transport(
-            true,
-            NULL,
-            pico_usb_transport_open,
-            pico_usb_transport_close,
-            pico_usb_transport_write,
-            pico_usb_transport_read
-        );
-    #endif
-    #endif
+    // Set custom transport
+    rmw_uros_set_custom_transport(
+        true,
+        NULL,
+        pico_usb_transport_open,
+        pico_usb_transport_close,
+        pico_usb_transport_write,
+        pico_usb_transport_read
+    );
 }
 
 AgentComponent* AgentComponent::getInstance()
@@ -113,6 +71,10 @@ void AgentComponent::disconnect()
 
 bool AgentComponent::isConnected()
 {
+
+    if (AgentComponent::instance == nullptr)
+        return false;
+    
     return AgentComponent::getInstance()->connected;
 }
 
@@ -151,6 +113,7 @@ void AgentComponent::initConnection()
         &this->support
     ));
 
+    // Syncs time with the main agent
     rmw_uros_sync_session(200);
 
     // Init logger
@@ -164,10 +127,10 @@ void AgentComponent::initConnection()
         this->handles_num += comp->getHandlesNum();
     }
 
-    /*
-    Executor needs to know the number of  subscribers/services beforehand.
-    This is why every URosComponent is responsible of telling this information through a function.
-    */
+    /**
+     * Executor needs to know the number of subscribers/services beforehand.
+     * This is why every URosComponent is responsible of telling this information through a function.
+     */
     if(this->handles_num > 0)
         ROS_CHECK(
             rclc_executor_init(
@@ -217,9 +180,6 @@ void AgentComponent::destroyConnection()
     rcl_node_fini(&this->node);
     rclc_support_fini(&this->support);
 
-    auto rmw_context = rcl_context_get_rmw_context(&this->support.context);
-    (void) rmw_uros_set_context_entity_destroy_session_timeout(rmw_context, 0);
-    
     this->initialized = false;
 }
 
@@ -238,12 +198,6 @@ void AgentComponent::run()
         blinkTask
     );
 
-    /*
-    A separate task only for receiving incoming messages will be used.
-    Pubblishing is done by agent task
-    */
-    auto exec = URosExecutor(&this->executor);
-
     while (true)
     {
         LedStripComponent::getInstance()->setMode(LedStripMode::StartingUp);
@@ -256,10 +210,17 @@ void AgentComponent::run()
 
         auto lastWakeTime = xTaskGetTickCount();
 
-        exec.start();
-
         while(this->connected)
         {
+            if(rmw_uros_ping_agent(1, 100) != RMW_RET_OK)
+            {
+                BuzzerComponent::play(BuzzerAction::ERROR);
+                this->connected = false;
+                continue;
+            }
+
+            rclc_executor_spin_some(&this->executor, RCL_MS_TO_NS(5));
+
             for (auto &&comp : this->components)
             {
                 for (auto &&pub : comp->publishers)
@@ -274,15 +235,13 @@ void AgentComponent::run()
             xTaskDelayUntil(&lastWakeTime, HZ_TO_MS(AGENT_UPDATE_RATE));
         }
 
-        /*
-            Stop anything critical if connection crashes.
-        */
+        /**
+         * Stop anything critical if connection crashes.
+         */
         for (auto &&comp : this->components)
         {
             comp->safeStop();
         }
-
-        exec.stop();
 
         xTimerStop(this->blinkTimer, 0);
 

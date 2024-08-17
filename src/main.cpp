@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <hardware/i2c.h>
 #include <hardware/watchdog.h>
+#include <tusb.h>
 
 #include "components/agent/AgentComponent.hpp"
 #include "components/system/SystemComponent.hpp"
@@ -15,7 +16,7 @@
 #include "components/imu/ImuComponent.hpp"
 #include "components/servo/ServoComponent.hpp"
 #include "components/air_quality/AirQualityComponent.hpp"
-#include "components/dht/DHTComponent.hpp"
+#include "components/aht/AHTComponent.hpp"
 #include "components/battery/BatteryComponent.hpp"
 #include "components/ultrasonic/UltrasonicComponent.hpp"
 #include "components/buzzer/BuzzerComponent.hpp"
@@ -27,9 +28,8 @@
 
 #include<array>
 
-
-template<typename Base, typename T>
-inline bool instanceof(const T *ptr) {
+    template <typename Base, typename T>
+    inline bool instanceof (const T *ptr) {
    return dynamic_cast<const Base*>(ptr) != nullptr;
 }
 /*
@@ -39,14 +39,14 @@ If any tasks is still blocked, the board will restart automatically.
 extern "C" {
     bool wdt_started = false;
     void vApplicationIdleHook(void)
-    {
-        if(!wdt_started)
-        {
-            watchdog_enable(2000, false);
-            wdt_started = true;
-        }
+    { /*
+       if(!wdt_started && sparkie::AgentComponent::isConnected())
+       {
+           watchdog_enable(2000, false);
+           wdt_started = true;
+       }
 
-        watchdog_update();
+       watchdog_update();*/
     }
 }
 
@@ -65,52 +65,27 @@ void setup_task(void* params)
     gpio_init(LED_PIN);
     gpio_set_dir(LED_PIN, GPIO_OUT);
     gpio_put(LED_PIN, 1);
-
+    
     sparkie::BuzzerComponent::init();
     sparkie::BuzzerComponent::play(sparkie::PLAY_STARTUP);
+    
+    /**
+     * Initializing all components
+    */
 
     std::vector<std::unique_ptr<sparkie::Component>> components;
-
+    
     components.emplace_back(std::make_unique<sparkie::LedStripComponent>());
     components.emplace_back(std::make_unique<sparkie::UltrasonicComponent>());
     components.emplace_back(std::make_unique<sparkie::AirQualityComponent>());
-    components.emplace_back(std::make_unique<sparkie::DHTComponent>());
+    components.emplace_back(std::make_unique<sparkie::AHTComponent>());
     components.emplace_back(std::make_unique<sparkie::BatteryComponent>());
     components.emplace_back(std::make_unique<sparkie::MotorsComponent>());
     components.emplace_back(std::make_unique<sparkie::ServoComponent>("head/tilt", SERVO_HEAD_TILT_PIN, SERVO_FREQUENCY));
-    
-    
-    #ifdef SPARKIE_SHOW_STATS
-        components.emplace_back(std::make_unique<sparkie::StatsComponent>());
-    #endif
-    
-  
+    components.emplace_back(std::make_unique<sparkie::StatsComponent>());
     components.emplace_back(std::make_unique<sparkie::ImuComponent>());
     components.emplace_back(std::make_unique<sparkie::SystemComponent>());
     
-    /*
-    std::vector<sparkie::Component*> components;
-    components.reserve(10);
-
-    // Instantiates all of the required components without starting any of them.
-     
-    components.push_back(new sparkie::LedStripComponent());
-    components.push_back(new sparkie::UltrasonicComponent());
-    components.push_back(new sparkie::AirQualityComponent());
-    components.push_back(new sparkie::DHTComponent());
-    components.push_back(new sparkie::BatteryComponent());
-    components.push_back(new sparkie::MotorsComponent());
-    components.push_back(new sparkie::ServoComponent("head/tilt", SERVO_HEAD_TILT_PIN, SERVO_FREQUENCY));
-    
-    
-    #ifdef SPARKIE_SHOW_STATS
-        components.push_back(new sparkie::StatsComponent());
-    #endif
-    
-  
-    components.push_back(new sparkie::ImuComponent());
-    components.push_back(new sparkie::SystemComponent());
-    */
 
     auto uros_agent = new sparkie::AgentComponent();
 
@@ -121,7 +96,7 @@ void setup_task(void* params)
     }
 
     /**
-     * Adding a delay between each component start to give them time to initialize everything correctly.
+     * Adding a delay between each component start to give them time to initialize correctly.
     */
 
     for (auto &&comp :components)
@@ -131,7 +106,7 @@ void setup_task(void* params)
     }
 
     /**
-     * Finally start agent component and wait for a new connection
+     * Finally start agent component and wait for the microros agent connection.
     */
 
     uros_agent->start();
@@ -142,12 +117,13 @@ void setup_task(void* params)
 int main()
 {
     // Wait for usb to be recognized correctly.
-    sleep_ms(2000);
+    stdio_init_all();
+    sleep_ms(1000);
 
+    // Start setup task
     TaskHandle_t task;
     xTaskCreate(setup_task, "setup", 3000, NULL, 1, &task);
     vTaskCoreAffinitySet(task, CORE0);
-    // Start the tasks and timer running. 
     vTaskStartScheduler();
     return 0;
 }

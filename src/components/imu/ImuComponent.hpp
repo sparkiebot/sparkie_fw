@@ -1,8 +1,9 @@
 #pragma once
 
 #include "../uros/URosComponent.hpp"
-#include <icm20689pico/icm20689pico.h>
+#include <gy85/gy85.hpp>
 #include <sensor_msgs/msg/imu.h>
+#include <sensor_msgs/msg/magnetic_field.h>
 
 namespace sparkie
 {
@@ -16,7 +17,8 @@ namespace sparkie
         virtual void init();
         virtual void loop(TickType_t* xLastWakeTime);
 
-        icm20689_t imu;
-        sensor_msgs__msg__Imu ros_msg;
+        gy85 imu;
+        sensor_msgs__msg__Imu imu_msg;
+        sensor_msgs__msg__MagneticField mag_msg;
     };
 } // namespace sparkie

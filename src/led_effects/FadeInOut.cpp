@@ -37,13 +37,16 @@ void FadeInOut::reset()
 
 bool FadeInOut::done()
 {
-    return !this->loop && this->cycles_count > 2;
+    return !this->loop && this->cycles_count >= 2;
 }
 
 void FadeInOut::animate(PicoLed::PicoLedController& controller, uint32_t delta_time)
 {
     this->curr_ticks += delta_time;
 
+    /**
+     * If the current ticks are greater than the fade time, then we need to change the color.
+     */
     if(this->curr_ticks >= this->fade_time)
     {
         if(!this->loop)
@@ -53,10 +56,15 @@ void FadeInOut::animate(PicoLed::PicoLedController& controller, uint32_t delta_t
         this->reverse = !this->reverse;
     }
     
-    
+    /**
+     * Calculate the ratio of the current ticks to the fade time.
+     * If the reverse flag is set, then we need to subtract the current ticks from the fade time.
+     * This will make the fade effect go from the second color to the first color.
+     */
     auto ratio = ((!this->reverse ? this->curr_ticks : (this->fade_time - this->curr_ticks)) / this->fade_time);
 
     auto curr_color = this->first_color;
+    
     curr_color.red *= ratio;
     curr_color.green *= ratio;
     curr_color.blue *= ratio;

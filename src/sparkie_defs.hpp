@@ -1,9 +1,5 @@
 #pragma once
 
-#define I2C_PORT i2c0
-#define I2C_SDA 20
-#define I2C_SCL 21
-
 #define CORE0 0x01
 #define CORE1 0x02
 #define CORE_UNDEFINED 0x03
@@ -26,21 +22,19 @@
 #define SERVO_PRIORITY 40
 #define ULTRASONIC_PRIORITY 30
 #define LEDSTRIP_PRIORITY 25
-#define DHT_PRIORITY 15
+#define AHT_PRIORITY 15
 #define BATT_PRIORITY 14
 #define SYS_MGNT_PRIORITY 13
 #define AIRQUALITY_PRIORITY 12
 #define STATS_PRIORITY 10
 #define LOGGER_PRIORITY 5
 
-#define AGENT_UPDATE_RATE 60
+#define AGENT_UPDATE_RATE 120.0
 
 #define RPM_TO_RADS 0.10472
 
 #define SPARKIE_VIS_DEBUG(ms) gpio_put(LED_PIN, 1); vTaskDelay(ms / portTICK_PERIOD_MS); gpio_put(LED_PIN, 0);
 
-// Use this define if you wanna see stats published
-//#define SPARKIE_SHOW_STATS
 
 #define LED_BATTERY_LAYER 0 
 #define LED_NOTIFY_LAYER 1

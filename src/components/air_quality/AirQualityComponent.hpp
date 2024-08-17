@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../uros/URosComponent.hpp"
-#include "../dht/DHTComponent.hpp"
+#include "../aht/AHTComponent.hpp"
 #include <std_msgs/msg/u_int16.h>
 #include <queue.h>
 
@@ -14,7 +14,7 @@ namespace sparkie
     class AirQualityComponent : public URosComponent
     {
     public:
-        friend class DHTComponent;
+        friend class AHTComponent;
         AirQualityComponent();
     protected:
         virtual void rosInit();
@@ -62,8 +62,8 @@ namespace sparkie
         bool write_into(uint8_t reg, uint8_t* buff, uint8_t len);
 
         bool init_error;
-        static QueueHandle_t dht_queue;
-        DhtData dht_data;
+        static QueueHandle_t aht_queue;
+        AhtData aht_data;
         std_msgs__msg__UInt16 co2_msg;
     };    
 } // namespace sparkie

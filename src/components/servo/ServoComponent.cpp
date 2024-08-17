@@ -11,7 +11,7 @@
 using namespace sparkie;
 
 /**
- * Adapred function from Arduino original map()
+ * Adapted function from Arduino original map()
 */
 float map(float x, float in_min, float in_max, float out_min, float out_max)
 {
@@ -54,7 +54,7 @@ void ServoComponent::rosInit()
         ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32),
         ServoComponent::onMessage,
         &this->angle_msg,
-        false
+        true
     );
 }
 

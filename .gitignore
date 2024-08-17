@@ -12,3 +12,5 @@ _deps
 build
 .vscode/*
 docs/html/
+.DS_Store
+libmicroros

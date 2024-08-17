@@ -25,14 +25,14 @@ add_compile_definitions(
     portSUPPORT_SMP=1
 )
 
-#icm20689
-add_subdirectory(lib/icm20689pico)
+#gy85
+add_subdirectory(lib/gy85)
 
 #PicoLed library
 include(lib/PicoLED/PicoLed.cmake)
 
 # pico_dht library
-add_subdirectory(lib/pico_dht/dht)
+add_subdirectory(lib/AhtPico)
 
 # pico pwm library
 add_subdirectory(lib/PicoPWM)

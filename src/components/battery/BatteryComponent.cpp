@@ -24,9 +24,8 @@ double round_up(double value, int decimal_places) {
 // - https://mycurvefit.com/
 // - https://blog.ampow.com/lipo-voltage-chart/ 
 // TODO: Lately a current sensor will be added and a different algorithm will be used.
-float lipo_percentage(float value)
+float lipo_percentage(float voltage)
 {
-    float voltage = value * 12.6;
     return -0.2746 * voltage * voltage + 7.0680*voltage - 44.4878;
 }
 
@@ -164,8 +163,10 @@ void BatteryComponent::loop(TickType_t* xLastWakeTime)
     
     this->curr_read = round_up(sum / BATT_READS_COUNT, 4);
 
-    this->battery_msg.voltage = this->curr_read * 12.6;
-    this->battery_msg.percentage = round_up(lipo_percentage(this->curr_read), 4);
+    // 3.3 is the max voltage of the Pico ADC
+    // 0.23 is the voltage divider ratio based on the schematic
+    this->battery_msg.voltage = this->curr_read * (3.3f / 0.23f);
+    this->battery_msg.percentage = round_up(lipo_percentage(this->battery_msg.voltage), 4);
     this->battery_msg.charge = this->battery_msg.percentage * this->battery_msg.capacity;
     
     BatteryStatus charging_state;
@@ -215,6 +216,7 @@ void BatteryComponent::loop(TickType_t* xLastWakeTime)
     if(this->low_power)
         mode = LedStripMode::LowBattery;
 
-    LedStripComponent::getInstance()->setMode(mode, LED_BATTERY_LAYER);
+    if (LedStripComponent::getInstance() != nullptr)
+        LedStripComponent::getInstance()->setMode(mode, LED_BATTERY_LAYER);
 
 }

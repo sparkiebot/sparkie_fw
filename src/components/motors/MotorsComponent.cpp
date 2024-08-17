@@ -7,9 +7,12 @@
 #include <numbers>
 #include <pico/stdlib.h>
 #include <hardware/pwm.h>
+#include <hardware/clocks.h>
 #include <algorithm>
 
 #include "../logger/LoggerComponent.hpp"
+
+#define TOP_MAX 65534
 
 using namespace sparkie;
 
@@ -17,31 +20,69 @@ template <typename T> int sign(T val) {
     return (T(0) < val) - (val < T(0));
 }
 
+// PWM Functions
+
+uint32_t pwm_set_frequency(uint pin, uint freq)
+{
+    auto slice_num = pwm_gpio_to_slice_num(pin);
+    uint32_t source_hz = clock_get_hz(clk_sys);
+    uint32_t div16_top = 16 * source_hz / freq;
+    uint32_t top = 1;
+    while (1)
+    {
+        // Try a few small prime factors to get close to the desired frequency.
+        if (div16_top >= 16 * 5 && div16_top % 5 == 0 && top * 5 <= TOP_MAX)
+        {
+            div16_top /= 5;
+            top *= 5;
+        }
+        else if (div16_top >= 16 * 3 && div16_top % 3 == 0 && top * 3 <= TOP_MAX)
+        {
+            div16_top /= 3;
+            top *= 3;
+        }
+        else if (div16_top >= 16 * 2 && top * 2 <= TOP_MAX)
+        {
+            div16_top /= 2;
+            top *= 2;
+        }
+        else
+        {
+            break;
+        }
+    }
+    if (div16_top < 16)
+    {
+        return 0;
+    }
+    else if (div16_top >= 256 * 16)
+    {
+        return 0;
+    }
+
+    pwm_set_clkdiv_int_frac(slice_num, div16_top / 16, div16_top & 0xF);
+    pwm_set_wrap(slice_num, top - 1);
+
+    return top;
+}
+
 // Motor Class
 
-Motor::Motor(uint pin_pwm, uint pin_a, uint pin_b, uint enc_a, uint enc_b) 
-    : pid(MOTOR_PID_KP, MOTOR_PID_KI, MOTOR_PID_KD, -MOTOR_MAX_RPM, MOTOR_MAX_RPM )
+Motor::Motor(uint pin_a, uint pin_b, uint enc_a, uint enc_b) 
+    : pid(MOTOR_PID_KP, MOTOR_PID_KI, MOTOR_PID_KD, MOTOR_DEADBAND_PWM,  0, UINT16_MAX)
 {
-
+    
     this->pin_a = pin_a;
     this->pin_b = pin_b;
-    this->pin_pwm = pin_pwm;
     this->enc.pin_a = enc_a;
     this->enc.pin_b = enc_b;
     this->enc.pulses = 0;
 
-    this->dir_change = false;
+    this->dir = 0;
     this->rotation = 0.0;
-    this->pid_rpm = 0.0;
+    this->pid_pwm = 0.0;
     this->curr_speed = 0.0;
     this->goal_speed = 0.0;
-    this->state = MotorState::STILL;
-
-    gpio_init(this->pin_a);
-    gpio_set_dir(this->pin_a, GPIO_OUT);
-
-    gpio_init(this->pin_b);
-    gpio_set_dir(this->pin_b, GPIO_OUT);
      
     gpio_init(this->enc.pin_a);
     gpio_set_dir(this->enc.pin_a, GPIO_IN);
@@ -54,71 +95,67 @@ Motor::Motor(uint pin_pwm, uint pin_a, uint pin_b, uint enc_a, uint enc_b)
     gpio_init(this->enc.pin_b);
     gpio_set_dir(this->enc.pin_b, GPIO_IN);
 
-    gpio_set_function(this->pin_pwm, GPIO_FUNC_PWM);
-    auto pwm_slice = pwm_gpio_to_slice_num(this->pin_pwm);
+    gpio_set_function(this->pin_a, GPIO_FUNC_PWM);
+    auto pwm_slice = pwm_gpio_to_slice_num(this->pin_a);
     auto pwm_config = pwm_get_default_config(); 
     pwm_init(pwm_slice, &pwm_config, true);
 
+    pwm_set_frequency(this->pin_a, 500);
+
+    gpio_set_function(this->pin_b, GPIO_FUNC_PWM);
+    pwm_slice = pwm_gpio_to_slice_num(this->pin_b);
+    pwm_config = pwm_get_default_config();
+    pwm_init(pwm_slice, &pwm_config, true);
+
+    this->wrap = pwm_set_frequency(this->pin_b, 500);
 }
 
 void Motor::setSpeed(double rpm)
 {
     auto goal_rpm = clamp(rpm, -MOTOR_SOFT_MAX_RPM, MOTOR_SOFT_MAX_RPM);
 
-    if(this->goal_speed == goal_rpm)
+    if (std::abs(goal_rpm) < MOTOR_MIN_RPM)
+    {
+        goal_rpm = 0;
+    }
+
+    if (this->goal_speed == std::abs(goal_rpm) && this->dir == sign(goal_rpm))
         return;
     
-    this->goal_speed = goal_rpm;
-    
-    if(std::abs(goal_rpm) < MOTOR_MIN_RPM)
+    this->goal_speed = abs(goal_rpm);
+
+    if (sign(goal_rpm) != this->dir)
     {
         this->pid.reset();
-        this->goal_speed = 0.0;
-        this->state = MotorState::STILL;
     }
-    else if(goal_rpm > 0 && this->state != MotorState::FORWARD)
-    {
-        if(this->curr_speed < 0)
-        {
-            this->pid.reset();
-            this->dir_change = true;
-        }
 
-        this->state = MotorState::FORWARD;
-    }
-    else if(goal_rpm < 0 && this->state != MotorState::BACK)
-    {
-        if(this->curr_speed > 0)
-        {
-            this->pid.reset();
-            this->dir_change = true;
-        }
-
-        this->state = MotorState::BACK;
-    }
+    this->dir = sign(goal_rpm);
 }
 
-void Motor::setRawSpeed(double rpm)
+void Motor::setRawSpeed(uint16_t pwm)
 {
 
-    if(std::abs(rpm) < MOTOR_MIN_RPM)
+    if(std::abs(pwm) < MOTOR_DEADBAND_PWM)
     {
-        gpio_put(this->pin_a, 0);
-        gpio_put(this->pin_b, 0);
-        return;
+        pwm_set_gpio_level(this->pin_a, 0);
+        pwm_set_gpio_level(this->pin_b, 0);
     }
-    else if(rpm > 0)
+    else if(this->dir > 0)
     {
-        gpio_put(this->pin_a, 1);
-        gpio_put(this->pin_b, 0);
+        pwm_set_gpio_level(this->pin_a, pwm * (this->wrap) / UINT16_MAX);
+        pwm_set_gpio_level(this->pin_b, 0);
     }
-    else if(rpm < 0)
+    else if (this->dir < 0)
     {
-        gpio_put(this->pin_a, 0);
-        gpio_put(this->pin_b, 1);
+        pwm_set_gpio_level(this->pin_a, 0);
+        pwm_set_gpio_level(this->pin_b, pwm * (this->wrap) / UINT16_MAX);
+    }
+    else
+    {
+        pwm_set_gpio_level(this->pin_a, 0);
+        pwm_set_gpio_level(this->pin_b, 0);
     }
 
-    pwm_set_gpio_level(this->pin_pwm, std::abs(rpm) * this->pwm_per_rpm);
 }
 
 void Motor::update(double delta_time)
@@ -139,28 +176,12 @@ void Motor::update(double delta_time)
     }
 
     this->enc.pulses = 0;
-    
-    if(this->goal_speed == 0)
-    {
-        this->setRawSpeed(0);
-    }
-    else
-    {
-        if(this->dir_change && this->curr_speed != 0)
-        {
-            this->pid_rpm = 0;
-        }
-        else
-        {
-            this->dir_change = false;
-            this->pid_rpm = this->pid.compute(
-                this->goal_speed, 
-                this->curr_speed, delta_time);
-        }
 
-        this->setRawSpeed(this->pid_rpm);
-    }
+    this->pid_pwm = this->pid.compute(
+        this->goal_speed,
+        std::abs(this->curr_speed));
 
+    this->setRawSpeed(this->pid_pwm);
 }
 
 void Motor::onInterrupt(uint gpio, uint32_t event_mask)
@@ -190,21 +211,15 @@ MotorsComponent::MotorsComponent()
 void MotorsComponent::init()
 {    
     this->lastUpdate = 0;
-    
-    gpio_init(MOTORS_ENABLE_PIN);
-    gpio_set_dir(MOTORS_ENABLE_PIN, GPIO_OUT);
-    gpio_put(MOTORS_ENABLE_PIN, 1);
 
     // 0 - Left
     // 1 - Right
     this->motors.push_back(Motor(
-        MOTOR_A_PWM_PIN, 
         MOTOR_A0_PIN, MOTOR_A1_PIN, 
         MOTOR_A_ENC0_PIN, MOTOR_A_ENC1_PIN
     ));
 
     this->motors.push_back(Motor(
-        MOTOR_B_PWM_PIN, 
         MOTOR_B0_PIN, MOTOR_B1_PIN, 
         MOTOR_B_ENC0_PIN, MOTOR_B_ENC1_PIN
     ));

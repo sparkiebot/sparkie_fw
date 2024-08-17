@@ -7,6 +7,8 @@
 
 using namespace sparkie;
 
+#define TASK_MAX_STACK_SIZE 1000
+
 void Component::stop()
 {
     this->safeStop();
@@ -17,13 +19,6 @@ void Component::stop()
     }
 }
 
-uint Component::getStackHighWater() const
-{
-    if(this->xHandle != NULL)
-        return uxTaskGetStackHighWaterMark(this->xHandle);
-    else
-        return 0;
-}
 
 bool Component::start()
 {
@@ -32,12 +27,14 @@ bool Component::start()
     res = xTaskCreate(
         Component::vTask,
         this->name.c_str(),
-        getMaxStackSize(),
-        (void*) this,
+        TASK_MAX_STACK_SIZE,
+        (void *)this,
         priority,
-        &this->xHandle
-    );
+        &this->xHandle);
 
+    /**
+     * If the task is created successfully, it will be assigned to the specified core.
+     */
     if(this->xHandle != NULL)
         vTaskCoreAffinitySet(this->xHandle, this->core);
 
@@ -48,9 +45,9 @@ bool Component::start()
 
     TaskRunTime_t taskParam;
 
-    /*
-    One time operation that adds two idle tasks (one per core) used for calculating cpu usage
-    */
+    /**
+     * One time operation that adds two idle tasks (one per core) used to calculate cpu usage
+     */
 
     if(StatsComponent::taskParams.empty())
     {
@@ -67,6 +64,9 @@ bool Component::start()
         }
     }
 
+    /**
+     * Adds the current task to the list of tasks to be monitored
+     */
     taskParam.name = this->name;
     taskParam.handle = this->xHandle;
     taskParam.core_time[0] = 0;

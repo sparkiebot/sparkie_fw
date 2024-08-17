@@ -27,10 +27,10 @@ namespace sparkie
     } BatteryReads;
 
     /**
-     * This component is responsible of calculating current SoC (State of Charge) <br>
+     * @brief this component is responsible of calculating current SoC (State of Charge) <br>
      * and checking if battery is being charged <br>
      * Currently calculation is being done by simply measuring current voltage and <br> 
-     * calculating the percetage using a particular function.
+     * calculating the percentage using a particular function.
     */
     class BatteryComponent : public URosComponent
     {
@@ -48,7 +48,7 @@ namespace sparkie
         virtual void init();
 
         /**
-         * This component measures battery voltage, checks for any new updates from ChargingCheck timer,
+         * Measures battery voltage, checks for any new updates from ChargingCheck timer,
          * and then it publishes the obtained data into a BatteryMsg
          * Voltage measurements are filtered using a moving average algorithm.
         */

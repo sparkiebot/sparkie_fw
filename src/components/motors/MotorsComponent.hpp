@@ -47,7 +47,7 @@ namespace sparkie
          * It also enables one of the hall sensor pin interrupt so when signal goes either high or low, <br> 
          * Motor::onInterrupt function is called.
         */
-        Motor(uint pin_pwm, uint pin_a, uint pin_b, uint enc_a, uint enc_b);
+        Motor(uint pin_a, uint pin_b, uint enc_a, uint enc_b);
 
         /**
          * @brief changes PID goal rpm and resets current PID error values.
@@ -66,19 +66,21 @@ namespace sparkie
     private:
 
         /**
-         * @brief Changes pwm duty cycle and turns motor pins on and off accordingly to rpm sign.  
+         * @brief Changes pwm duty cycle and turns motor pins on and off accordingly to directions.  
         */
-        void setRawSpeed(double rpm);
+        void setRawSpeed(uint16_t rpm);
 
         double rotation; // revolutions
         double curr_speed;
         bool dir_change;
+        int dir;
         double goal_speed;
-        double pid_rpm;
+        double pid_pwm;
 
         const double pwm_per_rpm = UINT16_MAX / MOTOR_MAX_RPM;
 
-        uint pin_pwm, pin_a, pin_b;
+        uint32_t wrap;
+        uint pin_a, pin_b;
         MotorEncoder enc;
 
         Pid pid;
@@ -93,7 +95,6 @@ namespace sparkie
     class MotorsComponent : public URosComponent
     {
     public:
-        friend class OdometryComponent;
 
         MotorsComponent();
         virtual uint8_t getHandlesNum();
