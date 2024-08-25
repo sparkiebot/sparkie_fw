@@ -19,8 +19,10 @@
 #define UROS_LEDSTRIP_RATE 24.0
 #define UROS_STATS_RATE 0.2
 #define UROS_MOTORS_RATE 30.0
+#define UROS_ODOM_RATE 30.0
 
 // Frame names
+#define UROS_ODOM_FRAME "odom"
 #define UROS_BASE_FRAME "base_link"
 #define UROS_ULTRASONIC_FRAME "us_"
 #define UROS_BOARD_FRAME "board_link"
@@ -111,6 +113,9 @@
 #define MOTOR_B1_PIN 19
 #define MOTOR_B_ENC0_PIN 17
 #define MOTOR_B_ENC1_PIN 16
+
+#define LEFT_WHEEL_JOINT "left_wheel_joint"
+#define RIGHT_WHEEL_JOINT "right_wheel_joint"
 
 // AirQuality Sensor
 #define AIRQ_ADDR 0x5A

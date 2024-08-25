@@ -6,7 +6,9 @@
 
 #include <geometry_msgs/msg/twist.h>
 #include <irobot_create_msgs/msg/wheel_vels.h>
+#include <nav_msgs/msg/odometry.h>
 #include <std_msgs/msg/bool.h>
+#include <sensor_msgs/msg/joint_state.h>
 
 #include <string>
 #include <vector>
@@ -70,7 +72,6 @@ namespace sparkie
         */
         void setRawSpeed(uint16_t rpm);
 
-        double rotation; // revolutions
         double curr_speed;
         bool dir_change;
         int dir;
@@ -104,6 +105,8 @@ namespace sparkie
         */
         static Motor* getMotorFromEncoderPin(uint pin);
 
+        static QueueHandle_t getMotorsQueue();
+
     protected:
         void rosInit();
     private:
@@ -117,11 +120,14 @@ namespace sparkie
         std::vector<Motor> motors;
         bool enabled;
         TickType_t lastUpdate;
+        double raw_motor_data[2];
 
-        std_msgs__msg__Bool state_msg;
         geometry_msgs__msg__Twist cmd_msg;
         irobot_create_msgs__msg__WheelVels wheel_vels_msg;
+        sensor_msgs__msg__JointState joint_state_msg;
         
+        static QueueHandle_t motors_queue;
+
         static MotorsComponent* instance;
     };    
 } // namespace sparkie

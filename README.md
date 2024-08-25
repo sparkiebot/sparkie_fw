@@ -49,6 +49,8 @@ The board once connected, spawns a node named `/sparkie/board` and makes availab
 - `/sparkie/board/imu` and `/sparkie/board/mag` show data from a chinese [GY-85](https://github.com/mattsays/gy85) module.
 - `/sparkie/board/us/*`, publish ultrasonic sensor data
 - `/sparkie/board/wheels/vel` publishes `irobot_create_msgs/WheelVels`, all the values are expressed in RPM.
+- `/sparkie/board/wheels/joint_states` publishes `sensor_msgs/JointState`, with the wheels position in radians.
+- `/sparkie/board/wheels/odom` publishes `nav_msgs/Odometry`, with the robot position and orientation.
 - `/cmd_vel`, subscribes to it and changes motors speed according to the constrains configured in `config.hpp`
 - `/sparkie/board/system` subscribes to it and reboots the board or enters programming mode (0 for reboot, 1 for programming mode)
 

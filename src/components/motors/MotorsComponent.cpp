@@ -79,7 +79,6 @@ Motor::Motor(uint pin_a, uint pin_b, uint enc_a, uint enc_b)
     this->enc.pulses = 0;
 
     this->dir = 0;
-    this->rotation = 0.0;
     this->pid_pwm = 0.0;
     this->curr_speed = 0.0;
     this->goal_speed = 0.0;
@@ -166,15 +165,6 @@ void Motor::update(double delta_time)
 
     this->curr_speed = revolutions / (60.0 * delta_time);
     
-    if(this->rotation + revolutions >= 1)
-    {
-        this->rotation = revolutions;
-    }
-    else
-    {
-        this->rotation += revolutions;
-    }
-
     this->enc.pulses = 0;
 
     this->pid_pwm = this->pid.compute(
@@ -201,6 +191,8 @@ void Motor::onInterrupt(uint gpio, uint32_t event_mask)
 // MotorsComponent Class
 
 MotorsComponent* MotorsComponent::instance;
+QueueHandle_t MotorsComponent::motors_queue = nullptr;
+
 
 MotorsComponent::MotorsComponent() 
     : URosComponent("motors", CORE1, MOTORS_PRIORITY, UROS_MOTORS_RATE)
@@ -210,6 +202,9 @@ MotorsComponent::MotorsComponent()
 
 void MotorsComponent::init()
 {    
+    this->raw_motor_data[0] = 0;
+    this->raw_motor_data[1] = 0;
+    this->motors_queue = xQueueCreate(1, sizeof(double)*2);
     this->lastUpdate = 0;
 
     // 0 - Left
@@ -238,6 +233,11 @@ Motor* MotorsComponent::getMotorFromEncoderPin(uint pin)
     return nullptr;
 }
 
+QueueHandle_t MotorsComponent::getMotorsQueue()
+{
+    return MotorsComponent::motors_queue;
+}
+
 uint8_t MotorsComponent::getHandlesNum()
 {
     return 1;
@@ -263,7 +263,58 @@ void MotorsComponent::rosInit()
     
     this->wheel_vels_msg.velocity_left = 0;
     this->wheel_vels_msg.velocity_right = 0;
+
+    this->addPublisher(
+        "wheels/joint_states",
+        ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, JointState)
+    );
+
+    this->joint_state_msg.header.frame_id = 
+        micro_ros_string_utilities_init(UROS_BASE_FRAME);
+
+    // Names
+
+    this->joint_state_msg.name.capacity = MOTORS_NUM;
+    this->joint_state_msg.name.size = MOTORS_NUM;
+    this->joint_state_msg.name.data = (rosidl_runtime_c__String*) pvPortMalloc(sizeof(rosidl_runtime_c__String) * MOTORS_NUM);
     
+    this->joint_state_msg.name.data[0] = micro_ros_string_utilities_init(LEFT_WHEEL_JOINT);
+    this->joint_state_msg.name.data[1] = micro_ros_string_utilities_init(RIGHT_WHEEL_JOINT);
+
+    // Position
+
+    this->joint_state_msg.position.capacity = MOTORS_NUM;
+    this->joint_state_msg.position.size = MOTORS_NUM;
+    this->joint_state_msg.position.data = (double*) pvPortMalloc(sizeof(double) * MOTORS_NUM);
+
+    for (size_t i = 0; i < MOTORS_NUM; i++)
+    {
+        this->joint_state_msg.position.data[i] = 0;
+    }
+
+    // Velocity
+
+    this->joint_state_msg.velocity.capacity = MOTORS_NUM;
+    this->joint_state_msg.velocity.size = MOTORS_NUM;
+    this->joint_state_msg.velocity.data = (double*) pvPortMalloc(sizeof(double) * MOTORS_NUM);
+
+    for (size_t i = 0; i < MOTORS_NUM; i++)
+    {
+        this->joint_state_msg.velocity.data[i] = 0;
+    }
+
+    // Effort
+
+    this->joint_state_msg.effort.capacity = MOTORS_NUM;
+    this->joint_state_msg.effort.size = MOTORS_NUM;
+    this->joint_state_msg.effort.data = (double*) pvPortMalloc(sizeof(double) * MOTORS_NUM);
+
+    for (size_t i = 0; i < MOTORS_NUM; i++)
+    {
+        this->joint_state_msg.effort.data[i] = 0;
+    }
+
+     
 }
 
 void MotorsComponent::onVelMessage(URosComponent* component, const void* msg_in)
@@ -308,6 +359,26 @@ void MotorsComponent::loop(TickType_t* xLastWakeTime)
     this->wheel_vels_msg.velocity_right = this->motors[1].curr_speed;
 
     this->sendMessage(0, &this->wheel_vels_msg);
+
+    // Joint State
+
+    this->joint_state_msg.header.stamp.nanosec = (uint32_t) rmw_uros_epoch_nanos();
+    this->joint_state_msg.header.stamp.sec = (int32_t) (rmw_uros_epoch_millis() / 1000);
+
+    this->joint_state_msg.position.data[0] += (this->motors[0].curr_speed * RPM_TO_RADS) * (1 / UROS_MOTORS_RATE);
+    this->joint_state_msg.position.data[1] += (this->motors[1].curr_speed * RPM_TO_RADS) * (1 / UROS_MOTORS_RATE);
+
+    this->joint_state_msg.velocity.data[0] = this->motors[0].curr_speed * RPM_TO_RADS;
+    this->joint_state_msg.velocity.data[1] = this->motors[1].curr_speed * RPM_TO_RADS;
+
+    this->sendMessage(1, &this->joint_state_msg);
+
+    // Odometry data queue
+
+    this->raw_motor_data[0] = this->motors[0].curr_speed;
+    this->raw_motor_data[1] = this->motors[1].curr_speed;
+
+    xQueueOverwrite(this->motors_queue, &this->raw_motor_data);
 }
 
 void MotorsComponent::safeStop()

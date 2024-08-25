@@ -22,6 +22,7 @@
 #include "components/buzzer/BuzzerComponent.hpp"
 #include "components/led_strip/LedStripComponent.hpp"
 #include "components/motors/MotorsComponent.hpp"
+#include "components/odometry/OdometryComponent.hpp"
 #include "sparkie_defs.hpp"
 
 #include "config.hpp"
@@ -81,6 +82,7 @@ void setup_task(void* params)
     components.emplace_back(std::make_unique<sparkie::AHTComponent>());
     components.emplace_back(std::make_unique<sparkie::BatteryComponent>());
     components.emplace_back(std::make_unique<sparkie::MotorsComponent>());
+    components.emplace_back(std::make_unique<sparkie::OdometryComponent>());
     components.emplace_back(std::make_unique<sparkie::ServoComponent>("head/tilt", SERVO_HEAD_TILT_PIN, SERVO_FREQUENCY));
     components.emplace_back(std::make_unique<sparkie::StatsComponent>());
     components.emplace_back(std::make_unique<sparkie::ImuComponent>());

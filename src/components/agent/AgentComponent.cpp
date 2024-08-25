@@ -219,7 +219,7 @@ void AgentComponent::run()
                 continue;
             }
 
-            rclc_executor_spin_some(&this->executor, RCL_MS_TO_NS(5));
+            rclc_executor_spin_some(&this->executor, RCL_MS_TO_NS(3));
 
             for (auto &&comp : this->components)
             {
