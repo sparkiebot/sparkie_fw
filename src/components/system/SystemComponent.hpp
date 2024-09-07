@@ -15,6 +15,7 @@ namespace sparkie
     public:
         SystemComponent(); 
         virtual uint8_t getHandlesNum(); 
+        static void onActionBtn(uint gpio, uint32_t events);
     protected:
         virtual void rosInit();
     private:

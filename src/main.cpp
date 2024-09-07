@@ -40,14 +40,14 @@ If any tasks is still blocked, the board will restart automatically.
 extern "C" {
     bool wdt_started = false;
     void vApplicationIdleHook(void)
-    { /*
+    { 
        if(!wdt_started && sparkie::AgentComponent::isConnected())
        {
            watchdog_enable(2000, false);
            wdt_started = true;
        }
 
-       watchdog_update();*/
+       watchdog_update();
     }
 }
 
@@ -69,7 +69,12 @@ void setup_task(void* params)
     
     sparkie::BuzzerComponent::init();
     sparkie::BuzzerComponent::play(sparkie::PLAY_STARTUP);
-    
+
+    gpio_init(ACTN_BTN_PIN);
+    gpio_set_dir(ACTN_BTN_PIN, GPIO_IN);
+    gpio_pull_up(ACTN_BTN_PIN);
+    gpio_set_irq_enabled_with_callback(ACTN_BTN_PIN, GPIO_IRQ_EDGE_FALL | GPIO_IRQ_EDGE_RISE, true, &sparkie::SystemComponent::onActionBtn);
+
     /**
      * Initializing all components
     */

@@ -49,7 +49,7 @@ namespace sparkie
          * It also enables one of the hall sensor pin interrupt so when signal goes either high or low, <br> 
          * Motor::onInterrupt function is called.
         */
-        Motor(uint pin_a, uint pin_b, uint enc_a, uint enc_b);
+        Motor(uint pin_a, uint pin_b, uint enc_a, uint enc_b, bool left = true);
 
         /**
          * @brief changes PID goal rpm and resets current PID error values.

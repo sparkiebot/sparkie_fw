@@ -1,6 +1,6 @@
 #pragma once
 
-#define BUZZ_MUTE
+//#define BUZZ_MUTE
 
 // Micro Ros settings
 #define UROS_NAMESPACE "sparkie"
@@ -9,7 +9,7 @@
 #define UROS_PING_ATTEMPTS 60
 
 // URosComponent's task update rates
-#define UROS_IMU_RATE 50.0
+#define UROS_IMU_RATE 45.0
 #define UROS_BATTERY_RATE 1.0
 #define UROS_AIRQUALITY_RATE 0.2
 #define UROS_AHT_RATE 0.2
@@ -97,12 +97,18 @@
 #define MOTOR_PULSES_PER_REVOLUTIONS 11.0
 #define MOTOR_REDUCTION_RATE 56.0
 
+// Left Motor
+#define MOTOR_L_PID_KP 2000
+#define MOTOR_L_PID_KI 50
+#define MOTOR_L_PID_KD 200
 
-#define MOTOR_PID_KP 50
-#define MOTOR_PID_KI 3.5
-#define MOTOR_PID_KD -10
+// Right Motor
+#define MOTOR_R_PID_KP 1500
+#define MOTOR_R_PID_KI 10
+#define MOTOR_R_PID_KD 900
 
-#define MOTOR_DEADBAND_PWM 12000
+//#define MOTOR_DEADBAND_PWM 12000
+#define MOTOR_DEADBAND_PWM 0
 
 #define MOTOR_A0_PIN 20
 #define MOTOR_A1_PIN 21
@@ -134,4 +140,4 @@
 
 // Action Button
 
-#define ACTN_BTN_PIN 24
+#define ACTN_BTN_PIN 28

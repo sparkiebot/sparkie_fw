@@ -68,8 +68,10 @@ uint32_t pwm_set_frequency(uint pin, uint freq)
 
 // Motor Class
 
-Motor::Motor(uint pin_a, uint pin_b, uint enc_a, uint enc_b) 
-    : pid(MOTOR_PID_KP, MOTOR_PID_KI, MOTOR_PID_KD, MOTOR_DEADBAND_PWM,  0, UINT16_MAX)
+Motor::Motor(uint pin_a, uint pin_b, uint enc_a, uint enc_b, bool left) 
+    : pid(left ? MOTOR_L_PID_KP : MOTOR_R_PID_KP, 
+        left ? MOTOR_L_PID_KI : MOTOR_R_PID_KI, 
+        left ? MOTOR_L_PID_KD : MOTOR_R_PID_KD, MOTOR_DEADBAND_PWM,  0, UINT16_MAX)
 {
     
     this->pin_a = pin_a;
@@ -116,6 +118,7 @@ void Motor::setSpeed(double rpm)
     if (std::abs(goal_rpm) < MOTOR_MIN_RPM)
     {
         goal_rpm = 0;
+        this->pid.reset();
     }
 
     if (this->goal_speed == std::abs(goal_rpm) && this->dir == sign(goal_rpm))
@@ -216,7 +219,8 @@ void MotorsComponent::init()
 
     this->motors.push_back(Motor(
         MOTOR_B0_PIN, MOTOR_B1_PIN, 
-        MOTOR_B_ENC0_PIN, MOTOR_B_ENC1_PIN
+        MOTOR_B_ENC0_PIN, MOTOR_B_ENC1_PIN,
+        false
     ));
 }
 
