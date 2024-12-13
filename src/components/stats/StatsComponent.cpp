@@ -13,6 +13,10 @@ using namespace sparkie;
 
 std::vector<TaskRunTime_t> sparkie::StatsComponent::taskParams;
 
+void taskCoreRunTime(int bOut);
+#define traceTASK_SWITCHED_OUT() taskCoreRunTime(1)
+#define traceTASK_SWITCHED_IN() taskCoreRunTime(0)
+
 void taskCoreRunTime(int bOut)
 {
 	TaskHandle_t _hTask = xTaskGetCurrentTaskHandle();

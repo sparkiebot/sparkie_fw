@@ -2,8 +2,11 @@ cmake_minimum_required(VERSION 3.12)
 
 
 set(NAME sparkie_fw)
+set(PICO_BOARD pico2)
+set(PICO_PLATFORM rp2350)
 
 include(pico_sdk_import.cmake)
+
 
 # Gooey boilerplate
 project(${NAME} C CXX ASM)
@@ -17,8 +20,8 @@ set(PICO_CXX_ENABLE_RTTI 1)
 pico_sdk_init()
 
 #include Libraries
-set(FREERTOS_CONFIG_FILE_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/port/FreeRTOS-Kernel" CACHE STRING "Local Config")
-include_directories("${FREERTOS_CONFIG_FILE_DIRECTORY}") 
+SET(FREERTOS_CONFIG_FILE_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/port/FreeRTOS-Kernel" CACHE STRING "Local Config")
+include("${FREERTOS_CONFIG_FILE_DIRECTORY}/freertos_config.cmake") 
 include(FreeRTOS_Kernel_import.cmake)
 add_compile_definitions(
     FREE_RTOS_KERNEL_SMP=1

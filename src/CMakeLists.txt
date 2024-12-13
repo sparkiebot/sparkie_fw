@@ -11,7 +11,6 @@ pico_generate_pio_header(${NAME} ${CMAKE_CURRENT_LIST_DIR}/misc/us_trig.pio)
 
 target_include_directories(${NAME} PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}
-    ${CMAKE_CURRENT_LIST_DIR}/../lib/FreeRTOS-Kernel/include
     ${CMAKE_CURRENT_LIST_DIR}/../lib/gy85/include
      )
 
@@ -51,7 +50,7 @@ add_compile_definitions(PICO_STDIO_ENABLE_CRLF_SUPPORT=0)
 add_compile_definitions(PICO_STDIO_DEFAULT_CRLF=0)
 
 # Usb settings
-add_compile_definitions(USBD_MANUFACTURER="FortiSix")
+add_compile_definitions(USBD_MANUFACTURER="mattsays")
 add_compile_definitions(USBD_PRODUCT="Sparkie Board")
 
 

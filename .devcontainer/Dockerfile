@@ -1,6 +1,5 @@
 FROM mcr.microsoft.com/devcontainers/cpp:1-ubuntu-22.04
 
-# [Optional] Uncomment this section to install additional packages.
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && apt-get -y install --no-install-recommends unzip cmake build-essential wget ca-certificates \
     gdb-multiarch automake autoconf libtool libftdi-dev libusb-1.0-0-dev pkg-config clang-format libhidapi-dev
@@ -17,14 +16,18 @@ RUN export PATH=$PATH:/opt/arm-none-eabi-gcc/bin
 
 WORKDIR /apps
 
-RUN git clone -b master https://github.com/raspberrypi/pico-sdk.git --depth=1 && git -C pico-sdk submodule update --init
+RUN git clone -b 2.1.0 https://github.com/raspberrypi/pico-sdk.git --depth=1 && git -C pico-sdk submodule update --init
 ENV PICO_SDK_PATH=/apps/pico-sdk
 
-RUN cd /apps && git clone https://github.com/raspberrypi/picotool.git --depth=1 \
-    && cd picotool && mkdir build && cd build && cmake ../ && make -j 8 && cp picotool /usr/local/bin
+RUN cd /apps && git clone -b 2.1.0 https://github.com/raspberrypi/picotool.git --depth=1 \
+    && cd picotool && mkdir build && cd build && cmake ../ && make -j && make install
+
+RUN cd /apps && git clone https://github.com/raspberrypi/FreeRTOS-Kernel.git freertos
+
+ENV FREERTOS_KERNEL_PATH=/apps/freertos
 
 RUN cd /apps && git clone https://github.com/wtarreau/bootterm.git --depth=1 \
-    && cd bootterm && make -j 8 install 
+    && cd bootterm && make -j install 
 
 RUN cd /apps && wget https://github.com/sparkiebot/sparkie_uros_sdk/releases/latest/download/libmicroros.zip \
     && unzip libmicroros.zip && rm libmicroros.zip
