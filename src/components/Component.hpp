@@ -58,7 +58,6 @@ namespace sparkie
         
         virtual void run() = 0;
         
-
         TaskHandle_t xHandle = NULL;
         std::string name;
         bool running;

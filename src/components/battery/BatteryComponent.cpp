@@ -1,21 +1,27 @@
 #include "BatteryComponent.hpp"
 #include "../../sparkie_defs.hpp"
 #include "../../config.hpp"
-#include <micro_ros_utilities/string_utilities.h>
-#include <rmw_microros/rmw_microros.h>
 #include <iostream>
 #include <cmath>
+
+#include <FreeRTOS.h>
+#include <timers.h>
+
 #include "hardware/adc.h"
 
 #include "../led_strip/LedStripComponent.hpp"
+#include "../messaging/MessageBroker.hpp"
+#include "projdefs.h"
 
 using namespace sparkie;
+
+// Define the message type for battery data
+const MessageType MSG_BATTERY_DATA = {"battery", 0};
 
 double round_up(double value, int decimal_places) {
     const double multiplier = std::pow(10.0, decimal_places);
     return std::ceil(value * multiplier) / multiplier;
 }
-
 
 // It will approximately calculate current battery percentage 
 // following a special curve made with MyCurveFit using Ampow table.
@@ -33,7 +39,7 @@ QueueHandle_t BatteryComponent::charge_state_queue;
 bool BatteryComponent::previous_state;
 
 BatteryComponent::BatteryComponent() 
-    : URosComponent("battery_sensor", CORE1, BATT_PRIORITY, UROS_BATTERY_RATE)
+    : MessageComponent("battery_sensor", CORE1, BATT_PRIORITY, UROS_BATTERY_RATE)
 {
 }
 
@@ -62,39 +68,24 @@ void BatteryComponent::onChargingCheck(TimerHandle_t timer)
     xQueueSend(BatteryComponent::charge_state_queue, &timer_charging_state, 0);
 }
 
+void BatteryComponent::msgInit()
+{
+    // Add the battery data publisher
+    this->addPublisher("/battery", &MSG_BATTERY_DATA);
+}
 
 void BatteryComponent::init()
 {
     this->low_power = false;
     this->curr_status = BatteryStatus::Unknown;
     this->curr_read = 0.0;
-
-    this->battery_msg.header.frame_id = 
-        micro_ros_string_utilities_init(UROS_BOARD_FRAME);
     
-    this->battery_msg.voltage = 0.0;
-    this->battery_msg.current = NAN;
-    this->battery_msg.charge = NAN;
-    this->battery_msg.capacity = BATT_CAPACITY;
-    this->battery_msg.design_capacity = BATT_CAPACITY;
-    this->battery_msg.percentage = 0.0;
-    this->battery_msg.power_supply_status = 0; // Unknown
-    this->battery_msg.power_supply_health = 0; // Unknown
-    this->battery_msg.power_supply_technology = 3; // LiPo
-    this->battery_msg.present = true;
-
-    this->battery_msg.cell_voltage.data = nullptr;
-    this->battery_msg.cell_voltage.capacity = 0;
-    this->battery_msg.cell_voltage.size = 0;
-
-    this->battery_msg.cell_temperature.data = nullptr;
-    this->battery_msg.cell_temperature.capacity = 0;
-    this->battery_msg.cell_temperature.size = 0;
-
-    this->battery_msg.temperature = NAN;
-    
-    this->battery_msg.location = micro_ros_string_utilities_init("Base");
-    this->battery_msg.serial_number = micro_ros_string_utilities_init("NULL");
+    // Initialize the battery data structure
+    this->battery_data.voltage = 0.0;
+    this->battery_data.percentage = 0.0;
+    this->battery_data.status = 0; // Unknown
+    this->battery_data.charge = 0.0;
+    this->battery_data.capacity = BATT_CAPACITY;
 
     gpio_init(BATT_RECHARGE_PIN);
     gpio_set_dir(BATT_RECHARGE_PIN, GPIO_IN);
@@ -109,7 +100,7 @@ void BatteryComponent::init()
     this->charging_check = xTimerCreate(
         "batt_charge_check",
         500 * portTICK_PERIOD_MS,
-        true,
+        pdTRUE,
         NULL,
         BatteryComponent::onChargingCheck
     );
@@ -123,28 +114,10 @@ void BatteryComponent::init()
         this->reads.data[i] = adc_read() * conv_factor;
         vTaskDelay(10);
     }
-    
-}
-
-void BatteryComponent::rosInit()
-{
-    this->addPublisher(
-        "battery", 
-        ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, BatteryState),
-        false
-    );
 }
 
 void BatteryComponent::loop(TickType_t* xLastWakeTime)
 {
-    auto ns = (uint32_t) rmw_uros_epoch_nanos();
-    auto s = (int32_t) (rmw_uros_epoch_millis() / 1000);
-    
-    
-    this->battery_msg.header.stamp.nanosec = ns;
-    this->battery_msg.header.stamp.sec = s;
-    
-
     /*
     A simple running average algorithm is used to smooth raw adc measurements
     */
@@ -164,10 +137,10 @@ void BatteryComponent::loop(TickType_t* xLastWakeTime)
     this->curr_read = round_up(sum / BATT_READS_COUNT, 4);
 
     // 3.3 is the max voltage of the Pico ADC
-    // 0.23 is the voltage divider ratio based on the schematic
-    this->battery_msg.voltage = this->curr_read * (3.3f / 0.23f);
-    this->battery_msg.percentage = round_up(lipo_percentage(this->battery_msg.voltage), 4);
-    this->battery_msg.charge = this->battery_msg.percentage * this->battery_msg.capacity;
+    // 0.22 is the voltage divider ratio based on the schematic
+    this->battery_data.voltage = this->curr_read * (3.3f / 0.22f);
+    this->battery_data.percentage = round_up(lipo_percentage(this->battery_data.voltage), 4);
+    this->battery_data.charge = this->battery_data.percentage * this->battery_data.capacity;
     
     BatteryStatus charging_state;
 
@@ -176,28 +149,27 @@ void BatteryComponent::loop(TickType_t* xLastWakeTime)
         charging_state = BatteryStatus::Unknown;
     }
 
-    if(round_up(this->battery_msg.percentage, 2) >= 0.95 && charging_state == BatteryStatus::Charging)
+    if(round_up(this->battery_data.percentage, 2) >= 0.95 && charging_state == BatteryStatus::Charging)
     {
-        this->battery_msg.power_supply_status = (uint8_t)BatteryStatus::Full;
+        this->battery_data.status = (uint8_t)BatteryStatus::Full;
     }
     else
     {
-        this->battery_msg.power_supply_status = (uint8_t)charging_state;
+        this->battery_data.status = (uint8_t)charging_state;
     }
 
-    this->sendMessage(0, &this->battery_msg);
-
+    // Send the battery data message
+    this->sendMessage(0, &this->battery_data, sizeof(this->battery_data));
 
     // Led notifications
-
     auto mode = LedStripMode::Off;
 
-    if (this->battery_msg.percentage < 0.2 && !this->low_power)
+    if (this->battery_data.percentage < 0.2 && !this->low_power)
     {
         this->low_power = true;
     }
     
-    auto battery_status = (BatteryStatus) this->battery_msg.power_supply_status;
+    auto battery_status = (BatteryStatus) this->battery_data.status;
 
     if(battery_status == BatteryStatus::Full)
     {
@@ -216,7 +188,8 @@ void BatteryComponent::loop(TickType_t* xLastWakeTime)
     if(this->low_power)
         mode = LedStripMode::LowBattery;
 
+#ifdef ENABLE_BATTERY_LED_NOTIFICATIONS
     if (LedStripComponent::getInstance() != nullptr)
         LedStripComponent::getInstance()->setMode(mode, LED_BATTERY_LAYER);
-
+#endif
 }

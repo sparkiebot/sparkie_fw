@@ -1,5 +1,4 @@
 #include "Component.hpp"
-#include "stats/StatsComponent.hpp"
 #include <vector>
 #include "pico/stdlib.h"
 #include <iostream>
@@ -7,7 +6,7 @@
 
 using namespace sparkie;
 
-#define TASK_MAX_STACK_SIZE 1000
+#define TASK_MAX_STACK_SIZE 2000
 
 void Component::stop()
 {
@@ -42,38 +41,6 @@ bool Component::start()
     {
         return false;
     }
-
-    TaskRunTime_t taskParam;
-
-    /**
-     * One time operation that adds two idle tasks (one per core) used to calculate cpu usage
-     */
-
-    if(StatsComponent::taskParams.empty())
-    {
-        auto taskHandles = xTaskGetIdleTaskHandle();
-        for (size_t i = 0; i < configNUM_CORES; i++)
-        {
-            taskParam.name = "IDLE" + std::to_string(i);
-            taskParam.handle = taskHandles[i];
-            taskParam.core_time[0] = 0;
-            taskParam.core_time[1] = 0;
-            taskParam.start_time = 0;    
-            taskParam.idle = true;
-            StatsComponent::taskParams.push_back(taskParam);
-        }
-    }
-
-    /**
-     * Adds the current task to the list of tasks to be monitored
-     */
-    taskParam.name = this->name;
-    taskParam.handle = this->xHandle;
-    taskParam.core_time[0] = 0;
-    taskParam.core_time[1] = 0;
-    taskParam.start_time = 0;  
-    taskParam.idle = false;  
-    StatsComponent::taskParams.push_back(taskParam);
 
     return true;
 }

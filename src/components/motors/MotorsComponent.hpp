@@ -1,28 +1,60 @@
 #pragma once
 
-#include "../uros/URosComponent.hpp"
+#include "../messaging/MessageComponent.hpp"
 #include "../../config.hpp"
 #include "../../misc/Pid.hpp"
-
-#include <geometry_msgs/msg/twist.h>
-#include <irobot_create_msgs/msg/wheel_vels.h>
-#include <nav_msgs/msg/odometry.h>
-#include <std_msgs/msg/bool.h>
-#include <sensor_msgs/msg/joint_state.h>
 
 #include <string>
 #include <vector>
 
-
 namespace sparkie
 {
+    /**
+     * Twist message structure for velocity commands
+     */
+    typedef struct _twist_data
+    {
+        struct {
+            float x;
+            float y; 
+            float z;
+        } linear;
+        
+        struct {
+            float x;
+            float y;
+            float z;
+        } angular;
+    } TwistData;
+
+    /**
+     * Wheel velocities message structure
+     */
+    typedef struct _wheel_vels_data
+    {
+        float velocity_left;
+        float velocity_right;
+        uint32_t timestamp_ms;
+    } WheelVelsData;
+
+    /**
+     * Joint state message structure
+     */
+    typedef struct _joint_state_data
+    {
+        float position[2];    // Position in radians
+        float velocity[2];    // Velocity in rad/s
+        float effort[2];      // Effort
+        uint32_t timestamp_ms;
+    } JointStateData;
+
     class MotorsComponent;
     
     typedef struct 
     {
         uint pin_a;
         uint pin_b;
-        int pulses;
+        volatile int pulses;
     } MotorEncoder;
     
     enum MotorState
@@ -93,7 +125,7 @@ namespace sparkie
      * 
      * It will send a message containing motor's velocities and also receives /cmd_vel messages.
     */
-    class MotorsComponent : public URosComponent
+    class MotorsComponent : public MessageComponent
     {
     public:
 
@@ -108,10 +140,10 @@ namespace sparkie
         static QueueHandle_t getMotorsQueue();
 
     protected:
-        void rosInit();
+        void msgInit();
     private:
         
-        static void onVelMessage(URosComponent* component, const void* msg_in);
+        static void onVelMessage(MessageComponent* component, const void* msg_in);
         
         virtual void init();
         virtual void loop(TickType_t* xLastWakeTime);
@@ -122,9 +154,9 @@ namespace sparkie
         TickType_t lastUpdate;
         double raw_motor_data[2];
 
-        geometry_msgs__msg__Twist cmd_msg;
-        irobot_create_msgs__msg__WheelVels wheel_vels_msg;
-        sensor_msgs__msg__JointState joint_state_msg;
+        TwistData cmd_data;
+        WheelVelsData wheel_vels_data, goal_vels_data;
+        JointStateData joint_state_data;
         
         static QueueHandle_t motors_queue;
 

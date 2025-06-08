@@ -4,7 +4,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 #include <stdio.h>
 #include <stdint.h>
 #include <time.h>

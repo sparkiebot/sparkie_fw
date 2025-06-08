@@ -1,14 +1,17 @@
 #include "OdometryComponent.hpp"
 #include "../../config.hpp"
 #include "../../sparkie_defs.hpp"
-#include <micro_ros_utilities/string_utilities.h>
 #include "../motors/MotorsComponent.hpp"
 #include <math.h>
+#include <pico/stdlib.h>
 
 using namespace sparkie;
 
+// Define message type for odometry
+const MessageType MSG_ODOMETRY = {"wheels/odom", 0};
+
 OdometryComponent::OdometryComponent()
-    : URosComponent("odometry", CORE1, ODOM_PRIORITY, UROS_ODOM_RATE)
+    : MessageComponent("odometry", CORE1, ODOM_PRIORITY, UROS_ODOM_RATE)
 {
 }
 
@@ -27,45 +30,32 @@ void OdometryComponent::init()
 
     this->raw_motor_data[0] = 0;
     this->raw_motor_data[1] = 0;
+    
+    // Initialize odometry data structure
+    this->odom_data.position.x = 0;
+    this->odom_data.position.y = 0;
+    this->odom_data.position.z = 0;
+    
+    this->odom_data.orientation.x = 0;
+    this->odom_data.orientation.y = 0;
+    this->odom_data.orientation.z = 0;
+    this->odom_data.orientation.w = 1;
+    
+    this->odom_data.linear_velocity.x = 0;
+    this->odom_data.linear_velocity.y = 0;
+    this->odom_data.linear_velocity.z = 0;
+    
+    this->odom_data.angular_velocity.x = 0;
+    this->odom_data.angular_velocity.y = 0;
+    this->odom_data.angular_velocity.z = 0;
+    
+    this->odom_data.timestamp_ms = 0;
 }
 
-void OdometryComponent::rosInit()
+void OdometryComponent::msgInit()
 {
     // Initialize odometry publisher
-
-    this->addPublisher(
-        "wheels/odom", 
-        ROSIDL_GET_MSG_TYPE_SUPPORT(nav_msgs, msg, Odometry), false
-    );
-
-    // Initialize odometry message
-
-    this->odom_msg.pose.pose.position.x = 0;
-    this->odom_msg.pose.pose.position.y = 0;
-    this->odom_msg.pose.pose.position.z = 0;
-
-    this->odom_msg.pose.pose.orientation.x = 0;
-    this->odom_msg.pose.pose.orientation.y = 0;
-    this->odom_msg.pose.pose.orientation.z = 0;
-    this->odom_msg.pose.pose.orientation.w = 1;
-
-    this->odom_msg.twist.twist.linear.x = 0;
-    this->odom_msg.twist.twist.linear.y = 0;
-    this->odom_msg.twist.twist.linear.z = 0;
-
-    this->odom_msg.twist.twist.angular.x = 0;
-    this->odom_msg.twist.twist.angular.y = 0;
-    this->odom_msg.twist.twist.angular.z = 0;
-
-    // Initialize odometry message covariance
-    for (int i = 0; i < 36; i++)
-    {
-        this->odom_msg.pose.covariance[i] = 0;
-        this->odom_msg.twist.covariance[i] = 0;
-    }
-
-    this->odom_msg.header.frame_id = micro_ros_string_utilities_init(UROS_ODOM_FRAME);
-    this->odom_msg.child_frame_id = micro_ros_string_utilities_init(UROS_BASE_FRAME);
+    this->addPublisher("/wheels/odom", &MSG_ODOMETRY, false);
 }
 
 void OdometryComponent::loop(TickType_t *xLastWakeTime)
@@ -88,20 +78,24 @@ void OdometryComponent::loop(TickType_t *xLastWakeTime)
     this->x += this->linear_velocity * cos(this->theta) * (1 / UROS_ODOM_RATE);
     this->y += this->linear_velocity * sin(this->theta) * (1 / UROS_ODOM_RATE);
 
-    // Update odometry message
-    this->odom_msg.twist.twist.linear.x = this->linear_velocity;
-    this->odom_msg.twist.twist.angular.z = this->angular_velocity;
+    // Get current timestamp
+    uint32_t current_time_ms = to_ms_since_boot(get_absolute_time());
+    
+    // Update odometry data
+    this->odom_data.timestamp_ms = current_time_ms;
+    
+    this->odom_data.linear_velocity.x = this->linear_velocity;
+    this->odom_data.angular_velocity.z = this->angular_velocity;
 
-    this->odom_msg.pose.pose.position.x = this->x;
-    this->odom_msg.pose.pose.position.y = this->y;
-    this->odom_msg.pose.pose.position.z = 0;
+    this->odom_data.position.x = this->x;
+    this->odom_data.position.y = this->y;
+    this->odom_data.position.z = 0;
 
-    this->odom_msg.pose.pose.orientation.x = 0;
-    this->odom_msg.pose.pose.orientation.y = 0;
-    this->odom_msg.pose.pose.orientation.z = sin(this->theta / 2);
-    this->odom_msg.pose.pose.orientation.w = cos(this->theta / 2);
+    this->odom_data.orientation.x = 0;
+    this->odom_data.orientation.y = 0;
+    this->odom_data.orientation.z = sin(this->theta / 2);
+    this->odom_data.orientation.w = cos(this->theta / 2);
 
     // Publish odometry
-    this->sendMessage(0, &this->odom_msg);
-
+    this->sendMessage(0, &this->odom_data, sizeof(this->odom_data));
 }

@@ -1,24 +1,69 @@
 #pragma once
 
-#include "../uros/URosComponent.hpp"
-#include <gy85/gy85.hpp>
-#include <sensor_msgs/msg/imu.h>
-#include <sensor_msgs/msg/magnetic_field.h>
+#include "../messaging/MessageComponent.hpp"
+#include "hw/gy85.hpp"
 
 namespace sparkie
 {
-    class ImuComponent : public URosComponent
+    /**
+     * Message structure for IMU data
+     */
+    typedef struct _imu_data
+    {
+        // Orientation quaternion
+        struct {
+            float x;
+            float y;
+            float z;
+            float w;
+        } orientation;
+        
+        // Angular velocity in rad/s
+        struct {
+            float x;
+            float y;
+            float z;
+        } angular_velocity;
+        
+        // Linear acceleration in m/s^2
+        struct {
+            float x;
+            float y;
+            float z;
+        } linear_acceleration;
+        
+        // Timestamp in milliseconds
+        uint32_t timestamp_ms;
+    } ImuData;
+
+    /**
+     * Message structure for magnetic field data
+     */
+    typedef struct _magnetic_field_data
+    {
+        // Magnetic field in Tesla
+        struct {
+            float x;
+            float y;
+            float z;
+        } magnetic_field;
+        
+        // Timestamp in milliseconds
+        uint32_t timestamp_ms;
+    } MagneticFieldData;
+
+    class ImuComponent : public MessageComponent
     {
     public:
         ImuComponent();
     protected:
-        virtual void rosInit();
+        virtual void msgInit();
     private:
         virtual void init();
         virtual void loop(TickType_t* xLastWakeTime);
 
         gy85 imu;
-        sensor_msgs__msg__Imu imu_msg;
-        sensor_msgs__msg__MagneticField mag_msg;
+        ImuData imu_data;
+        MagneticFieldData mag_data;
     };
 } // namespace sparkie

@@ -2,9 +2,7 @@ cmake_minimum_required(VERSION 3.15)
 
 add_library(freertos_config STATIC)
 
-target_sources(freertos_config PUBLIC   
-        ${CMAKE_CURRENT_LIST_DIR}/idleMemory.c
-        ${CMAKE_CURRENT_LIST_DIR}/cppMemory.cpp
+target_sources(freertos_config PUBLIC  
     )
 target_include_directories(freertos_config PUBLIC
 	${CMAKE_CURRENT_LIST_DIR}

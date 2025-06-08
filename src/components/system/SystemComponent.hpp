@@ -1,27 +1,34 @@
 #pragma once
 
-#include "../uros/URosComponent.hpp"
-#include <std_msgs/msg/u_int8.h>
+#include "../messaging/MessageComponent.hpp"
 
 namespace sparkie
 {
+    /**
+     * Simple message structure for system control
+     */
+    typedef struct _system_data
+    {
+        uint8_t command;  // 0: normal reboot, 1: programming mode
+    } SystemData;
+
     /**
      * @brief Component used for rebooting board either normally or in programming mode.
      * 0 means normal mode.
      * 1 means programming mode.
     */
-    class SystemComponent : public URosComponent
+    class SystemComponent : public MessageComponent
     {
     public:
         SystemComponent(); 
         virtual uint8_t getHandlesNum(); 
         static void onActionBtn(uint gpio, uint32_t events);
     protected:
-        virtual void rosInit();
+        virtual void msgInit();
     private:
         virtual void init();
         virtual void loop(TickType_t* xLastWakeTime);
-        static void onMessage(URosComponent* component, const void* msg_in);
-        std_msgs__msg__UInt8 data_msg;
+        static void onMessage(MessageComponent* component, const void* msg_in);
+        SystemData system_data;
     };    
 } // namespace sparkie

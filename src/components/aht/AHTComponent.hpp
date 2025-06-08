@@ -1,9 +1,7 @@
 #pragma once
 
-#include "../uros/URosComponent.hpp"
-#include <ahtxx/ahtxx.hpp>
-#include <sensor_msgs/msg/temperature.h>
-#include <sensor_msgs/msg/relative_humidity.h>
+#include "../messaging/MessageComponent.hpp"
+#include "hw/aht.hpp"
 
 namespace sparkie
 {
@@ -12,11 +10,16 @@ namespace sparkie
         float temp;
         float hum;
     } AhtData;
+    
+    /**
+     * AHT Message
+    */
+    
 
     /**
      * Component for publishing temperature and humidity data.
      */
-    class AHTComponent : public URosComponent
+    class AHTComponent : public MessageComponent
     {
     public:
         AHTComponent();
@@ -28,9 +31,8 @@ namespace sparkie
         virtual void init();
         virtual void loop(TickType_t *xLastWakeTime);
 
-        sensor_msgs__msg__Temperature temp_msg;
-        sensor_msgs__msg__RelativeHumidity hum_msg;
-        LIB_AHTXX sensor;
+        AHT sensor;
         AhtData aht_data;
+        float temp, hum;
     };
 } // namespace sparkie

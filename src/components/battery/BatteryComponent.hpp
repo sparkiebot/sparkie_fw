@@ -1,9 +1,9 @@
 #pragma once
 
-#include "../uros/URosComponent.hpp"
-#include <sensor_msgs/msg/battery_state.h>
+#include "../messaging/MessageComponent.hpp"
 #include "../../config.hpp"
 #include <array>
+#include <timers.h>
 
 namespace sparkie
 {
@@ -27,17 +27,29 @@ namespace sparkie
     } BatteryReads;
 
     /**
+     * Message type structure for battery data
+     */
+    typedef struct _battery_data
+    {
+        float voltage;         // Battery voltage
+        float percentage;      // Battery percentage (0.0 - 1.0)
+        uint8_t status;        // Battery status (using BatteryStatus enum)
+        float charge;          // Current charge level
+        float capacity;        // Total capacity
+    } BatteryData;
+
+    /**
      * @brief this component is responsible of calculating current SoC (State of Charge) <br>
      * and checking if battery is being charged <br>
      * Currently calculation is being done by simply measuring current voltage and <br> 
      * calculating the percentage using a particular function.
     */
-    class BatteryComponent : public URosComponent
+    class BatteryComponent : public MessageComponent
     {
     public:
         BatteryComponent();
     protected:
-        virtual void rosInit();
+        virtual void msgInit();
     private:
 
         /**
@@ -60,7 +72,7 @@ namespace sparkie
         BatteryStatus curr_status;
         static bool previous_state;
         float curr_read;
-        sensor_msgs__msg__BatteryState battery_msg;
+        BatteryData battery_data;
         static QueueHandle_t charge_state_queue;
         TimerHandle_t charging_check;
     };    

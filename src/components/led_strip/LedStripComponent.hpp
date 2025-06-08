@@ -1,17 +1,22 @@
 #pragma once
 
-#include "../uros/URosComponent.hpp"
+#include "../messaging/MessageComponent.hpp"
 #include "../../config.hpp"
 #include "../../sparkie_defs.hpp"
 #include <array>
 #include <map>
-#include <std_msgs/msg/u_int8.h>
 #include <PicoLed.hpp>
 #include "../../led_effects/StripEffect.hpp"
 
-
 namespace sparkie
 {
+    /**
+     * Simple message structure for LED strip control
+     */
+    typedef struct _led_strip_data
+    {
+        uint8_t mode;  // Corresponds to LedStripMode
+    } LedStripData;
 
     /**
      * LedStrip states
@@ -33,14 +38,13 @@ namespace sparkie
         StartingUp,
         Calculating,
         Connecting,
-
     };
 
     /**
      * Component for handling all ledstripmodes.
      * It uses a layered rendering to display multiple ledstrip effects on the same strip.
     */
-    class LedStripComponent : public URosComponent
+    class LedStripComponent : public MessageComponent
     {
     public:
         LedStripComponent();
@@ -59,7 +63,7 @@ namespace sparkie
         const LedStripMode getMode(uint8_t index);
         
     protected:
-        virtual void rosInit();
+        virtual void msgInit();
     private:
 
         virtual void init();
@@ -74,11 +78,14 @@ namespace sparkie
         */
         virtual void safeStop();
 
-        static void onMessage(URosComponent* component, const void* msg_in);
+        /**
+         * Callback for receiving LED control messages
+         */
+        static void onMessage(MessageComponent* component, const void* msg_in);
         
         uint8_t sm_index;
 
-        std_msgs__msg__UInt8 data_msg;
+        LedStripData led_data;
         PicoLed::PicoLedController controller;
         
         std::array<std::pair<visuals::StripEffect*, LedStripMode>, 2> curr_effects;

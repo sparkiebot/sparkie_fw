@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 3.12)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(NAME sparkie_fw)
 set(PICO_BOARD pico2)
-set(PICO_PLATFORM rp2350)
+#set(PICO_PLATFORM rp2350)
 
 include(pico_sdk_import.cmake)
 
@@ -20,6 +21,8 @@ set(PICO_CXX_ENABLE_RTTI 1)
 pico_sdk_init()
 
 #include Libraries
+SET(FREERTOS_KERNEL_COMMUNITY "${CMAKE_CURRENT_LIST_DIR}/lib/FreeRTOS-Kernel-Community-Supported-Ports" CACHE STRING "Common Lib")
+SET(FREERTOS_KERNEL_PATH "${CMAKE_CURRENT_LIST_DIR}/lib/FreeRTOS-Kernel" CACHE STRING "Course Common Lib")
 SET(FREERTOS_CONFIG_FILE_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/port/FreeRTOS-Kernel" CACHE STRING "Local Config")
 include("${FREERTOS_CONFIG_FILE_DIRECTORY}/freertos_config.cmake") 
 include(FreeRTOS_Kernel_import.cmake)
@@ -40,8 +43,12 @@ add_subdirectory(lib/AhtPico)
 # pico pwm library
 add_subdirectory(lib/PicoPWM)
 
+# pico i2c dma library
+add_subdirectory(lib/pico-i2c-dma)
+
 # micro ros
-include(micro_ros_pico_import.cmake)
+link_directories("lib/microros")
+include_directories("lib/microros/include")
 
 #Add main source directory
 add_subdirectory(src)

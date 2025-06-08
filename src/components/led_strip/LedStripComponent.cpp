@@ -6,13 +6,17 @@
 #include "../../led_effects/FadeInOut.hpp"
 #include "../../led_effects/Static.hpp"
 #include "../../led_effects/Ring.hpp"
+#include "../messaging/MessageBroker.hpp"
 
 using namespace sparkie;
+
+// Define the message type for LED strip control
+const MessageType MSG_LEDSTRIP_CONTROL = {"ledstrip", 0};
 
 LedStripComponent* LedStripComponent::instance = nullptr;
 
 LedStripComponent::LedStripComponent() 
-    : URosComponent("ledstrip", CORE1, LEDSTRIP_PRIORITY, UROS_LEDSTRIP_RATE), 
+    : MessageComponent("ledstrip", CORE0, LEDSTRIP_PRIORITY, UROS_LEDSTRIP_RATE), 
       controller(PicoLed::PicoLedController(nullptr))
 {
     instance = this;
@@ -84,24 +88,24 @@ uint8_t LedStripComponent::getHandlesNum()
     return 1;
 }
 
-void LedStripComponent::rosInit()
+void LedStripComponent::msgInit()
 {
     this->addSubscription(
-        "ledstrip",
-        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, UInt8),
-        LedStripComponent::onMessage,
-        &this->data_msg,
-        false
+        "/ledstrip",
+        &MSG_LEDSTRIP_CONTROL,
+        LedStripComponent::onMessage
     );
 }
 
-void LedStripComponent::onMessage(URosComponent* component, const void* msg_in)
+void LedStripComponent::onMessage(MessageComponent* component, const void* msg_in)
 {
-    auto msg = (const std_msgs__msg__UInt8*) msg_in;
-    auto ledstrip =  (LedStripComponent*) component;
-    auto mode = static_cast<LedStripMode>(msg->data);
+    auto msg = (const LedStripData*) msg_in;
+    auto ledstrip = (LedStripComponent*) component;
+    auto mode = static_cast<LedStripMode>(msg->mode);
     
-    if(msg->data < 10 || msg->data > 19)
+    // Check if the mode is in the valid range
+    // If not, turn off the ledstrip
+    if(msg->mode < 10 || msg->mode > 19)
         mode = LedStripMode::Off;
     
     ledstrip->setMode(mode, LED_NOTIFY_LAYER);
@@ -109,7 +113,6 @@ void LedStripComponent::onMessage(URosComponent* component, const void* msg_in)
 
 void LedStripComponent::loop(TickType_t* xLastWakeTime)
 {
-
     this->controller.clear();
 
     for (size_t i = 0; i < this->curr_effects.size(); i++)

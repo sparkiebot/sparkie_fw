@@ -60,7 +60,7 @@ void vApplicationStackOverflowHook(TaskHandle_t xTask,
     printf("----------------------------------------------\n");
     taskDISABLE_INTERRUPTS();
     for (;;)
-        ;
+        printf("STACK OVERFLOW on %s\n", pcTaskName);
 }
 
 void vAssertCalled(const char *pcFile, uint32_t ulLine)
@@ -70,11 +70,5 @@ void vAssertCalled(const char *pcFile, uint32_t ulLine)
     printf("----------------------------------------------\n");
     taskDISABLE_INTERRUPTS();
     for (;;)
-        ;
-}
-
-void *pvPortRealloc(void *pv, size_t size)
-{
-    vPortFree(pv);
-    return pvPortMalloc(size);
+        printf("ASSERT FAILED %s line: %d\n", pcFile, ulLine);
 }

@@ -133,43 +133,56 @@ class PID():
        
         return clamp(val, 0, UINT_16)
 
+P = 1000
+I = 400
+D = 100
 
+#left = Motor(B0, B1, ENC_B0, ENC_B1)
 left = Motor(A0, A1, ENC_A0, ENC_A1)
-l_pid = PID(left, 12000,  50, 1.5, -10)
-right = Motor(B0, B1, ENC_B0, ENC_B1)
+l_pid = PID(left, 0,  P, I, D)
+
 rpm = 0
-right.set_raw_speed(rpm)
+#right.set_raw_speed(rpm)
 left.set_raw_speed(rpm)
 
 l_pid.set_speed(abs(rpm))
 
 
 rpm = int(input("RPM: "))
-l_pid.set_speed(abs(rpm))
+l_pid.set_speed((rpm))
 #right.set_raw_speed(rpm)
 maxs = 0
-a = 0.9
+a = 0.5
 speed = 0
 
+reached = False
+reach_time = time.ticks_ms()
+avg_e = 0
 
 try:
     while True:
         dt = 33 / 1000
-        right.update(dt)
+        #right.update(dt)
         left.update(dt)
         computed_speed = l_pid.compute(dt)
         left.set_raw_speed(computed_speed)
         
         time.sleep_ms(33)
-
+        
         
         #speed = speed * a + (1-a) * left.speed
         speed = left.speed
+        avg_e = avg_e * a + (1-a) * abs(l_pid.e)
+        
+        if speed >= rpm and not reached:
+            reached = True
+            reach_time = time.ticks_ms() - reach_time
         
         if maxs < speed:
             maxs = speed
         
-        print(f"left: {speed} goal: {abs(rpm)} pid: {computed_speed / PWM_PER_RPM} e: {l_pid.e}")
+        print(f"left: {speed} goal: {abs(rpm)} pid: {computed_speed / PWM_PER_RPM} e: {l_pid.e} avg_e: {avg_e}")
 except:
     left.set_raw_speed(0)
     print(maxs)
+    print(f"Reached time: {reach_time} ms")

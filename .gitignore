@@ -13,4 +13,6 @@ build
 .vscode/*
 docs/html/
 .DS_Store
-libmicroros
+lib/microros
+.cache
+.direnv

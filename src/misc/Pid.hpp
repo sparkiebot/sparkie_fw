@@ -20,6 +20,7 @@ namespace sparkie
         Pid(double kp, double ki, double kd, uint16_t deadband_offset, uint16_t min_value, uint16_t max_value);
         void reset();
         uint16_t compute(double goal, double current_measure);
+        void set(double kp, double ki, double kd);
     private:
         double kp, ki, kd;
 

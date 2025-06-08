@@ -1,12 +1,12 @@
 #pragma once
 
-#include "../uros/URosComponent.hpp"
-#include "../../config.hpp"
+#include "../messaging/MessageComponent.hpp"
 #include <source_location>
+#include <string>
 
 namespace sparkie
 {
-
+    // Enum per i livelli di log
     enum LogLevel
     {
         Debug = 10,
@@ -15,27 +15,40 @@ namespace sparkie
         Error = 40,
         Fatal = 50
     };
+    
+    // Funzione di utilità per convertire LogLevel in stringa
+    inline std::string logLevelToString(LogLevel level)
+    {
+        switch(level)
+        {
+            case Debug: return "Debug";
+            case Info: return "Info";
+            case Warning: return "Warning";
+            case Error: return "Error";
+            case Fatal: return "Fatal";
+            default: return "Unknown";
+        }
+    }
 
-    class LoggerComponent : public URosComponent
+    class LoggerComponent : public MessageComponent
     {
     public:
-        friend class AgentComponent;
-        
         LoggerComponent();
 
+        // Metodo statico per loggare messaggi
         static void log(LogLevel level, std::string msg, 
             const std::source_location& location = std::source_location::current());
+            
+        // Numero di handle di sottoscrizione
+        uint8_t getHandlesNum() override;
+
     protected:
-        void rosInit();
+        // Inizializzazione del sistema di messaggistica
+        void msgInit() override;
+
     private:
-        /**
-         * These task related functions are not really used as logger component will publish messages on request.
-        */
-        virtual void init();
-        virtual void loop(TickType_t* xLastWakeTime);
-
-        rcl_interfaces__msg__Log log_msg;
-
-        static LoggerComponent* instance;
+        // Implementazione dei metodi astratti ereditati
+        void init() override;
+        void loop(TickType_t* xLastWakeTime) override;
     };    
 } // namespace sparkie

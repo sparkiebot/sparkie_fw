@@ -52,3 +52,11 @@ uint16_t Pid::compute(double goal, double current_measure)
 
     return clamp(pid_value, this->min_value, this->max_value);
 }
+
+void sparkie::Pid::set(double kp, double ki, double kd)
+{
+    this->kp = kp;
+    this->ki = ki;
+    this->kd = kd;
+    this->reset();
+}

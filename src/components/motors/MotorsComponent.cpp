@@ -1,20 +1,25 @@
 #include "MotorsComponent.hpp"
 #include <iostream>
 #include "../../sparkie_defs.hpp"
-#include <rmw_microros/rmw_microros.h>
-#include <micro_ros_utilities/string_utilities.h>
 #include <cmath>
 #include <numbers>
 #include <pico/stdlib.h>
 #include <hardware/pwm.h>
 #include <hardware/clocks.h>
 #include <algorithm>
-
+#include "../buzzer/BuzzerComponent.hpp"
 #include "../logger/LoggerComponent.hpp"
+#include "../messaging/MessageBroker.hpp"
 
 #define TOP_MAX 65534
 
 using namespace sparkie;
+
+// Define message types
+const MessageType MSG_CMD_VEL = {"cmd_vel", 0};
+const MessageType MSG_WHEEL_VELS = {"wheels/vel", 1};
+const MessageType MSG_WHEEL_GOAL = {"wheels/goal", 2};
+const MessageType MSG_JOINT_STATES = {"wheels/joint_states", 3};
 
 template <typename T> int sign(T val) {
     return (T(0) < val) - (val < T(0));
@@ -87,13 +92,14 @@ Motor::Motor(uint pin_a, uint pin_b, uint enc_a, uint enc_b, bool left)
      
     gpio_init(this->enc.pin_a);
     gpio_set_dir(this->enc.pin_a, GPIO_IN);
+    gpio_pull_up(this->enc.pin_a);
     gpio_set_irq_enabled_with_callback(
-        this->enc.pin_a, 
-        GPIO_IRQ_EDGE_RISE, true, 
-        Motor::onInterrupt
-    );
+        this->enc.pin_a,
+        GPIO_IRQ_EDGE_RISE, true,
+        Motor::onInterrupt);
 
     gpio_init(this->enc.pin_b);
+    gpio_pull_up(this->enc.pin_b);
     gpio_set_dir(this->enc.pin_b, GPIO_IN);
 
     gpio_set_function(this->pin_a, GPIO_FUNC_PWM);
@@ -184,11 +190,10 @@ void Motor::onInterrupt(uint gpio, uint32_t event_mask)
     if(motor == nullptr)
         return;
 
-    if(gpio_get(motor->enc.pin_b))
-        motor->enc.pulses++;
+    if (gpio_get(motor->enc.pin_b))
+        motor->enc.pulses = motor->enc.pulses + 1;
     else
-        motor->enc.pulses--;
-            
+        motor->enc.pulses = motor->enc.pulses - 1;
 }
 
 // MotorsComponent Class
@@ -198,7 +203,7 @@ QueueHandle_t MotorsComponent::motors_queue = nullptr;
 
 
 MotorsComponent::MotorsComponent() 
-    : URosComponent("motors", CORE1, MOTORS_PRIORITY, UROS_MOTORS_RATE)
+    : MessageComponent("motors", CORE1, MOTORS_PRIORITY, UROS_MOTORS_RATE)
 {
     instance = this;
 }
@@ -209,6 +214,23 @@ void MotorsComponent::init()
     this->raw_motor_data[1] = 0;
     this->motors_queue = xQueueCreate(1, sizeof(double)*2);
     this->lastUpdate = 0;
+
+    // Initialize the data structures
+    this->wheel_vels_data.velocity_left = 0;
+    this->wheel_vels_data.velocity_right = 0;
+    this->wheel_vels_data.timestamp_ms = 0;
+
+    this->goal_vels_data.velocity_left = 0;
+    this->goal_vels_data.velocity_right = 0;
+    this->goal_vels_data.timestamp_ms = 0;
+
+    this->joint_state_data.position[0] = 0;
+    this->joint_state_data.position[1] = 0;
+    this->joint_state_data.velocity[0] = 0;
+    this->joint_state_data.velocity[1] = 0;
+    this->joint_state_data.effort[0] = 0;
+    this->joint_state_data.effort[1] = 0;
+    this->joint_state_data.timestamp_ms = 0;
 
     // 0 - Left
     // 1 - Right
@@ -244,88 +266,43 @@ QueueHandle_t MotorsComponent::getMotorsQueue()
 
 uint8_t MotorsComponent::getHandlesNum()
 {
-    return 1;
+    return 2;
 }
 
-void MotorsComponent::rosInit()
+void MotorsComponent::msgInit()
 {
+    // Add subscription for velocity commands
     this->addSubscription(
         "/cmd_vel",
-        ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist),
+        &MSG_CMD_VEL,
         MotorsComponent::onVelMessage,
-        &this->cmd_msg,
         false
     );
     
-    this->addPublisher(
-        "wheels/vel",
-        ROSIDL_GET_MSG_TYPE_SUPPORT(irobot_create_msgs, msg, WheelVels)
-    );
-
-    this->wheel_vels_msg.header.frame_id =
-        micro_ros_string_utilities_init(UROS_BASE_FRAME);
-    
-    this->wheel_vels_msg.velocity_left = 0;
-    this->wheel_vels_msg.velocity_right = 0;
-
-    this->addPublisher(
-        "wheels/joint_states",
-        ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, JointState)
-    );
-
-    this->joint_state_msg.header.frame_id = 
-        micro_ros_string_utilities_init(UROS_BASE_FRAME);
-
-    // Names
-
-    this->joint_state_msg.name.capacity = MOTORS_NUM;
-    this->joint_state_msg.name.size = MOTORS_NUM;
-    this->joint_state_msg.name.data = (rosidl_runtime_c__String*) pvPortMalloc(sizeof(rosidl_runtime_c__String) * MOTORS_NUM);
-    
-    this->joint_state_msg.name.data[0] = micro_ros_string_utilities_init(LEFT_WHEEL_JOINT);
-    this->joint_state_msg.name.data[1] = micro_ros_string_utilities_init(RIGHT_WHEEL_JOINT);
-
-    // Position
-
-    this->joint_state_msg.position.capacity = MOTORS_NUM;
-    this->joint_state_msg.position.size = MOTORS_NUM;
-    this->joint_state_msg.position.data = (double*) pvPortMalloc(sizeof(double) * MOTORS_NUM);
-
-    for (size_t i = 0; i < MOTORS_NUM; i++)
-    {
-        this->joint_state_msg.position.data[i] = 0;
-    }
-
-    // Velocity
-
-    this->joint_state_msg.velocity.capacity = MOTORS_NUM;
-    this->joint_state_msg.velocity.size = MOTORS_NUM;
-    this->joint_state_msg.velocity.data = (double*) pvPortMalloc(sizeof(double) * MOTORS_NUM);
-
-    for (size_t i = 0; i < MOTORS_NUM; i++)
-    {
-        this->joint_state_msg.velocity.data[i] = 0;
-    }
-
-    // Effort
-
-    this->joint_state_msg.effort.capacity = MOTORS_NUM;
-    this->joint_state_msg.effort.size = MOTORS_NUM;
-    this->joint_state_msg.effort.data = (double*) pvPortMalloc(sizeof(double) * MOTORS_NUM);
-
-    for (size_t i = 0; i < MOTORS_NUM; i++)
-    {
-        this->joint_state_msg.effort.data[i] = 0;
-    }
-
-     
+    // Add publishers for wheel velocities, goals, and joint states
+    this->addPublisher("/wheels/vel", &MSG_WHEEL_VELS);
+    this->addPublisher("/wheels/goal", &MSG_WHEEL_GOAL);
+    this->addPublisher("/wheels/joint_states", &MSG_JOINT_STATES);
 }
 
-void MotorsComponent::onVelMessage(URosComponent* component, const void* msg_in)
+void MotorsComponent::onVelMessage(MessageComponent* component, const void* msg_in)
 {
-    auto msg = (const geometry_msgs__msg__Twist*) msg_in;
+    auto msg = (const TwistData*) msg_in;
     auto motors_comp = (MotorsComponent*) component;
     
+    if(msg->linear.y > 0)
+    {
+        auto id = msg->linear.y - 1;
+        auto p = msg->linear.z;
+        auto i = msg->angular.x;
+        auto d = msg->angular.y;
+        
+        sparkie::BuzzerComponent::play(sparkie::BuzzerAction::CONNECTED);
+
+        motors_comp->motors[id].pid.set(p, i, d);
+        return;
+    }
+
     auto linear = msg->linear.x;
     auto angular = msg->angular.z;
 
@@ -337,48 +314,53 @@ void MotorsComponent::onVelMessage(URosComponent* component, const void* msg_in)
 
     auto left_rpm = -left_speed / RPM_TO_RADS;
     auto right_rpm = right_speed / RPM_TO_RADS;
-    
+
     motors_comp->motors[0].setSpeed(left_rpm);
     motors_comp->motors[1].setSpeed(right_rpm);
+
+    // Update the goal velocities message
+    motors_comp->goal_vels_data.timestamp_ms = to_ms_since_boot(get_absolute_time());
+    motors_comp->goal_vels_data.velocity_left = motors_comp->motors[0].goal_speed;
+    motors_comp->goal_vels_data.velocity_right = motors_comp->motors[1].goal_speed;
+
+    // Send the goal velocities message
+    motors_comp->sendMessage(1, &motors_comp->goal_vels_data, sizeof(motors_comp->goal_vels_data));
 }
 
-void MotorsComponent::loop(TickType_t* xLastWakeTime)
+void MotorsComponent::loop(TickType_t * xLastWakeTime)
 {
     auto current_time = to_ms_since_boot(get_absolute_time());
-    if(this->lastUpdate != 0)
+    if (this->lastUpdate != 0)
     {
         auto delta_time = (current_time - lastUpdate) / (1000.0);
-        
+
         for (size_t i = 0; i < MOTORS_NUM; ++i)
         {
             this->motors[i].update(delta_time);
-        }        
+        }
     }
 
     this->lastUpdate = current_time;
 
-    this->wheel_vels_msg.header.stamp.nanosec = (uint32_t) rmw_uros_epoch_nanos();
-    this->wheel_vels_msg.header.stamp.sec = (int32_t) (rmw_uros_epoch_millis() / 1000);
-    this->wheel_vels_msg.velocity_left = this->motors[0].curr_speed;
-    this->wheel_vels_msg.velocity_right = this->motors[1].curr_speed;
+    // Update the wheel velocities message
+    this->wheel_vels_data.timestamp_ms = current_time;
+    this->wheel_vels_data.velocity_left = this->motors[0].curr_speed;
+    this->wheel_vels_data.velocity_right = this->motors[1].curr_speed;
 
-    this->sendMessage(0, &this->wheel_vels_msg);
+    // Send the wheel velocities message
+    this->sendMessage(0, &this->wheel_vels_data, sizeof(this->wheel_vels_data));
 
-    // Joint State
+    // Update the joint state message
+    this->joint_state_data.timestamp_ms = current_time;
+    this->joint_state_data.position[0] += (this->motors[0].curr_speed * RPM_TO_RADS) * (1 / UROS_MOTORS_RATE);
+    this->joint_state_data.position[1] += (this->motors[1].curr_speed * RPM_TO_RADS) * (1 / UROS_MOTORS_RATE);
+    this->joint_state_data.velocity[0] = this->motors[0].curr_speed * RPM_TO_RADS;
+    this->joint_state_data.velocity[1] = this->motors[1].curr_speed * RPM_TO_RADS;
 
-    this->joint_state_msg.header.stamp.nanosec = (uint32_t) rmw_uros_epoch_nanos();
-    this->joint_state_msg.header.stamp.sec = (int32_t) (rmw_uros_epoch_millis() / 1000);
-
-    this->joint_state_msg.position.data[0] += (this->motors[0].curr_speed * RPM_TO_RADS) * (1 / UROS_MOTORS_RATE);
-    this->joint_state_msg.position.data[1] += (this->motors[1].curr_speed * RPM_TO_RADS) * (1 / UROS_MOTORS_RATE);
-
-    this->joint_state_msg.velocity.data[0] = this->motors[0].curr_speed * RPM_TO_RADS;
-    this->joint_state_msg.velocity.data[1] = this->motors[1].curr_speed * RPM_TO_RADS;
-
-    this->sendMessage(1, &this->joint_state_msg);
+    // Send the joint state message
+    this->sendMessage(2, &this->joint_state_data, sizeof(this->joint_state_data));
 
     // Odometry data queue
-
     this->raw_motor_data[0] = this->motors[0].curr_speed;
     this->raw_motor_data[1] = this->motors[1].curr_speed;
 

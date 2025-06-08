@@ -4,7 +4,7 @@
 #define CORE1 0x02
 #define CORE_UNDEFINED 0x03
 
-#define HZ_TO_MS(hz) (1000 / hz) / portTICK_PERIOD_MS
+#define HZ_TO_MS(hz) (long) ((1000.0 / hz) / portTICK_PERIOD_MS)
 
 #ifdef DEBUG
     #define ROS_CHECK(ret) if(ret != RCL_RET_OK) while(true) { std::cout << ("Error runnig ros function: " + std::to_string(ret)) << "\r\n"; vTaskDelay(2000 / portTICK_PERIOD_MS); }
@@ -30,7 +30,7 @@
 #define STATS_PRIORITY 10
 #define LOGGER_PRIORITY 5
 
-#define AGENT_UPDATE_RATE 120.0
+#define AGENT_UPDATE_RATE 45.0
 
 #define RPM_TO_RADS 0.10472
 

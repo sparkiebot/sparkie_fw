@@ -1,28 +1,27 @@
 #include "UltrasonicComponent.hpp"
 #include "../../sparkie_defs.hpp"
 
-#include <micro_ros_utilities/string_utilities.h>
-#include <rmw_microros/rmw_microros.h>
 #include <iostream>
 #include "pico/stdlib.h"
 
 #include "../../misc/us_echo.pio.h"
 #include "../../misc/us_trig.pio.h"
 
-
 using namespace sparkie;
 
-UltrasonicComponent::UltrasonicComponent() 
-    : URosComponent("ultrasonic_sensors", CORE1, ULTRASONIC_PRIORITY)
-{
+// Define message types for ultrasonic sensors
+const MessageType MSG_RANGE_LEFT = {"us/left", 0};
+const MessageType MSG_RANGE_FRONT = {"us/front", 1};
+const MessageType MSG_RANGE_RIGHT = {"us/right", 2};
 
+UltrasonicComponent::UltrasonicComponent() 
+    : MessageComponent("ultrasonic_sensors", CORE1, ULTRASONIC_PRIORITY)
+{
 }
 
 void UltrasonicComponent::initTriggerPio()
 {
-
     // Init trigger pin pio
-    
     auto sm = 3; // State Machine index
     
     pio_gpio_init(pio1, US_TRIG_PIN);
@@ -64,24 +63,16 @@ void UltrasonicComponent::initEchoPio(PIO pio, uint sm, uint echo_pin)
 
 void UltrasonicComponent::initSensor(UltrasonicSensor* sensor, int index, const std::string& name)
 {
-
-    this->addPublisher(
-        "us/" + name,
-        ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Range)
-    );
+    const MessageType* msg_types[] = {&MSG_RANGE_LEFT, &MSG_RANGE_FRONT, &MSG_RANGE_RIGHT};
+    
+    this->addPublisher("/us/" + name, msg_types[index]);
 
     sensor->data = 0;
-
-    std::string buff;
-    buff = std::string(UROS_ULTRASONIC_FRAME);
-    buff.append(name);
-
-    sensor->frame = micro_ros_string_utilities_init(buff.data());   
+    sensor->frame = std::string(UROS_ULTRASONIC_FRAME) + name;
 }
 
 void UltrasonicComponent::readData(TickType_t* lastWakeTime)
 {
-
     for (size_t i = 0; i < US_NUM; i++)
     {
         pio_sm_clear_fifos(pio1, i);
@@ -110,7 +101,6 @@ void UltrasonicComponent::readData(TickType_t* lastWakeTime)
         // the distance in cm is calculated by multiplying with 0.000136
         this->sensors[i].data = (float)(clock_cycles) * 0.000136f;
     }
-
 }
 
 void UltrasonicComponent::init()
@@ -121,37 +111,38 @@ void UltrasonicComponent::init()
     this->initEchoPio(pio1, 2, US_LEFT_PIN + 2);
     this->initTriggerPio();
 
-    // See http://docs.ros.org/en/noetic/api/sensor_msgs/html/msg/Range.html
+    // Initialize range data structs
     for (size_t i = 0; i < US_NUM; i++)
     {
-        this->ros_msg[i].radiation_type = 0; // Ultrasonic type.
-        this->ros_msg[i].field_of_view = US_FOV;
-        this->ros_msg[i].min_range = US_MIN_RANGE;
-        this->ros_msg[i].max_range = US_MAX_RANGE;
+        this->range_data[i].radiation_type = 0; // Ultrasonic type
+        this->range_data[i].field_of_view = US_FOV;
+        this->range_data[i].min_range = US_MIN_RANGE;
+        this->range_data[i].max_range = US_MAX_RANGE;
+        this->range_data[i].range = 0.0f;
+        this->range_data[i].timestamp_ms = 0;
     }
 }
 
-void UltrasonicComponent::rosInit()
+void UltrasonicComponent::msgInit()
 {
-    this->initSensor(this->sensors    , 0, "left");
-    this->initSensor(this->sensors + 1, 1, "front");
-    this->initSensor(this->sensors + 2, 2, "right");
+    this->initSensor(&this->sensors[0], 0, "left");
+    this->initSensor(&this->sensors[1], 1, "front");
+    this->initSensor(&this->sensors[2], 2, "right");
 }
 
 void UltrasonicComponent::loop(TickType_t* xLastWakeTime)
 {
     this->readData(xLastWakeTime);
 
-    auto ns = (uint32_t) rmw_uros_epoch_nanos();
-    auto sec = (int32_t) (rmw_uros_epoch_millis() / 1000);
+    // Get current timestamp
+    uint32_t current_time_ms = to_ms_since_boot(get_absolute_time());
     
     for (size_t i = 0; i < US_NUM; i++)
     {
-        this->ros_msg[i].header.stamp.nanosec = ns;
-        this->ros_msg[i].header.stamp.sec = sec;
-        this->ros_msg[i].header.frame_id = this->sensors[i].frame;
-        this->ros_msg[i].range = this->sensors[i].data / 100.0;
-        this->sendMessage(i, &this->ros_msg[i]);
+        this->range_data[i].timestamp_ms = current_time_ms;
+        this->range_data[i].range = this->sensors[i].data / 100.0; // Convert from cm to meters
+        
+        this->sendMessage(i, &this->range_data[i], sizeof(RangeData));
     }
 
     // No need to specify the delay time, as the delay is already done in readData.

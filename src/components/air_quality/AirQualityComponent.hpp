@@ -1,8 +1,7 @@
 #pragma once
 
-#include "../uros/URosComponent.hpp"
 #include "../aht/AHTComponent.hpp"
-#include <std_msgs/msg/u_int16.h>
+#include "components/messaging/MessageComponent.hpp"
 #include <queue.h>
 
 namespace sparkie
@@ -11,13 +10,13 @@ namespace sparkie
      * AirQuality sensor component, that sends co2 ppm data and 
      * auto adjusts itself based on temperature and humidity data.
     */
-    class AirQualityComponent : public URosComponent
+    class AirQualityComponent : public MessageComponent
     {
     public:
         friend class AHTComponent;
         AirQualityComponent();
     protected:
-        virtual void rosInit();
+        virtual void msgInit();
     private:
         virtual void init();
         virtual void loop(TickType_t* xLastWakeTime);
@@ -47,7 +46,7 @@ namespace sparkie
         /**
          * Returns the calculated ECO2 value measured in ppm.
         */
-        uint16_t getECo2();
+        void obtainECo2();
 
         /**
          * Affine algorithm calculations by sending the current ambient parameters.
@@ -58,12 +57,10 @@ namespace sparkie
         
         // I2C read/write operations
 
-        bool read_from(uint8_t reg, uint8_t* buff, uint8_t len);
-        bool write_into(uint8_t reg, uint8_t* buff, uint8_t len);
 
         bool init_error;
         static QueueHandle_t aht_queue;
         AhtData aht_data;
-        std_msgs__msg__UInt16 co2_msg;
+        uint16_t co2_ppm;
     };    
 } // namespace sparkie

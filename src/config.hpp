@@ -1,6 +1,10 @@
 #pragma once
 
-//#define BUZZ_MUTE
+#define BUZZ_MUTE
+
+// Sparkie settings
+
+//#define ENABLE_BATTERY_LED_NOTIFICATIONS
 
 // Micro Ros settings
 #define UROS_NAMESPACE "sparkie"
@@ -9,12 +13,12 @@
 #define UROS_PING_ATTEMPTS 60
 
 // URosComponent's task update rates
-#define UROS_IMU_RATE 45.0
-#define UROS_BATTERY_RATE 1.0
+#define UROS_IMU_RATE 30.0
+#define UROS_BATTERY_RATE 0.2
 #define UROS_AIRQUALITY_RATE 0.2
 #define UROS_AHT_RATE 0.2
 #define UROS_ULTRASONIC_RATE 24.0 // This will be fixed because limited by the sensor.
-#define UROS_SERVO_RATE 20.0
+#define UROS_SERVO_RATE 15.0
 #define UROS_SYSTEM_MANAGER_RATE 1.0
 #define UROS_LEDSTRIP_RATE 24.0
 #define UROS_STATS_RATE 0.2
@@ -22,7 +26,7 @@
 #define UROS_ODOM_RATE 30.0
 
 // Frame names
-#define UROS_ODOM_FRAME "odom"
+#define UROS_ODOM_FRAME "wheel_odom"
 #define UROS_BASE_FRAME "base_link"
 #define UROS_ULTRASONIC_FRAME "us_"
 #define UROS_BOARD_FRAME "board_link"
@@ -40,7 +44,7 @@
 #define UART_RX 17
 
 // Misc
-#define LED_PIN 10
+#define LED_PIN 25
 #define BUZZ_PIN 9
 
 // Battery 
@@ -65,7 +69,7 @@
 #define SERVO_FREQUENCY 50
 #define SERVO_HEAD_TILT_PIN 13
 
-#define SERVO_ZERO_POS 0
+#define SERVO_ZERO_POS 15
 #define SERVO_SOFT_MAX_ANGLE 30
 #define SERVO_SOFT_MIN_ANGLE -30
 
@@ -98,14 +102,14 @@
 #define MOTOR_REDUCTION_RATE 56.0
 
 // Left Motor
-#define MOTOR_L_PID_KP 2000
+#define MOTOR_L_PID_KP 300
 #define MOTOR_L_PID_KI 50
-#define MOTOR_L_PID_KD 200
+#define MOTOR_L_PID_KD 0.4
 
 // Right Motor
-#define MOTOR_R_PID_KP 1500
-#define MOTOR_R_PID_KI 10
-#define MOTOR_R_PID_KD 900
+#define MOTOR_R_PID_KP 300
+#define MOTOR_R_PID_KI 50
+#define MOTOR_R_PID_KD 0.4
 
 //#define MOTOR_DEADBAND_PWM 12000
 #define MOTOR_DEADBAND_PWM 0

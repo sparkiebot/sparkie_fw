@@ -12,6 +12,7 @@ pico_generate_pio_header(${NAME} ${CMAKE_CURRENT_LIST_DIR}/misc/us_trig.pio)
 target_include_directories(${NAME} PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}
     ${CMAKE_CURRENT_LIST_DIR}/../lib/gy85/include
+    ${CMAKE_CURRENT_LIST_DIR}/../lib/pico-i2c-dma/src/include
      )
 
 
@@ -25,11 +26,16 @@ target_link_libraries(${NAME}
      hardware_adc
      hardware_pio
      FreeRTOS-Kernel-Heap4
-     microros
+     #microros
      gy85
      PicoLed
      PicoPWM
      pico_ahtxx
+     i2c_dma
+
+     pico_unique_id 
+     tinyusb_device 
+     tinyusb_board
 	)
   
 target_compile_definitions(${NAME} PRIVATE
@@ -46,8 +52,8 @@ pico_enable_stdio_uart(${NAME} 0)
 
 # micro ros formatting requirements
 add_compile_definitions(PICO_UART_ENABLE_CRLF_SUPPORT=0)
-add_compile_definitions(PICO_STDIO_ENABLE_CRLF_SUPPORT=0)
-add_compile_definitions(PICO_STDIO_DEFAULT_CRLF=0)
+add_compile_definitions(PICO_STDIO_ENABLE_CRLF_SUPPORT=1)
+add_compile_definitions(PICO_STDIO_DEFAULT_CRLF=1)
 
 # Usb settings
 add_compile_definitions(USBD_MANUFACTURER="mattsays")

@@ -22,16 +22,9 @@ ENV PICO_SDK_PATH=/apps/pico-sdk
 RUN cd /apps && git clone -b 2.1.0 https://github.com/raspberrypi/picotool.git --depth=1 \
     && cd picotool && mkdir build && cd build && cmake ../ && make -j && make install
 
-RUN cd /apps && git clone https://github.com/raspberrypi/FreeRTOS-Kernel.git freertos
-
-ENV FREERTOS_KERNEL_PATH=/apps/freertos
-
 RUN cd /apps && git clone https://github.com/wtarreau/bootterm.git --depth=1 \
     && cd bootterm && make -j install 
 
-RUN cd /apps && wget https://github.com/sparkiebot/sparkie_uros_sdk/releases/latest/download/libmicroros.zip \
-    && unzip libmicroros.zip && rm libmicroros.zip
-ENV MICRO_ROS_PICO=/apps/libmicroros
 
 ENV PATH "$PATH:/opt/arm-none-eabi-gcc/bin"
 

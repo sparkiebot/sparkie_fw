@@ -10,6 +10,9 @@
 
 using namespace sparkie;
 
+// Define message type for servo control
+const MessageType MSG_SERVO_CONTROL = {"servo", 0};
+
 /**
  * Adapted function from Arduino original map()
 */
@@ -19,7 +22,7 @@ float map(float x, float in_min, float in_max, float out_min, float out_max)
 }
 
 ServoComponent::ServoComponent(const std::string& name, uint pin, uint freq) 
-    : URosComponent("joint_", CORE1, SERVO_PRIORITY, UROS_SERVO_RATE), pwm(pin)
+    : MessageComponent("joint_", CORE0, SERVO_PRIORITY, UROS_SERVO_RATE), pwm(pin)
 {
     Component::name.append(name);
     this->pin = pin;
@@ -31,8 +34,7 @@ void ServoComponent::setMicros(float micros)
 {
     if(micros < SERVO_MIN_MICROS || micros > SERVO_MAX_MICROS)
         return;
-
-    this->pwm.setDutyPercentage((micros / this->period) * 100);
+    this->pwm.setDuty((micros / this->period) * 65535);
 }
 
 void ServoComponent::setDegrees(float degrees)
@@ -47,14 +49,12 @@ uint8_t ServoComponent::getHandlesNum()
     return 1;
 }
 
-void ServoComponent::rosInit()
+void ServoComponent::msgInit()
 {
     this->addSubscription(
-        this->getName().substr(6),
-        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32),
-        ServoComponent::onMessage,
-        &this->angle_msg,
-        true
+        "/" + this->getName().substr(6),
+        &MSG_SERVO_CONTROL,
+        ServoComponent::onMessage
     );
 }
 
@@ -64,18 +64,20 @@ void ServoComponent::init()
     this->setDegrees(SERVO_ZERO_POS); 
 }
 
-void ServoComponent::onMessage(URosComponent* component, const void* msg_in)
+void ServoComponent::onMessage(MessageComponent* component, const void* msg_in)
 {
-    const std_msgs__msg__Float32* msg = (const std_msgs__msg__Float32*) msg_in;
-    if(msg->data < SERVO_SOFT_MIN_ANGLE || msg->data > SERVO_SOFT_MAX_ANGLE)
+    const ServoData* msg = (const ServoData*) msg_in;
+
+    if (msg->angle < SERVO_SOFT_MIN_ANGLE || msg->angle > SERVO_SOFT_MAX_ANGLE)
         return;
     
     auto servo = (ServoComponent*) component;
-    servo->setDegrees(SERVO_ZERO_POS + msg->data);
+    servo->setDegrees(SERVO_ZERO_POS + msg->angle);
 }
 
 void ServoComponent::loop(TickType_t* xLastWakeTime)
 {    
+    // No regular updates needed for servo component
 }
 
 void ServoComponent::safeStop()

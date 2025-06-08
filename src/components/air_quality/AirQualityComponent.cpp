@@ -3,14 +3,15 @@
 #include "../../config.hpp"
 #include "../logger/LoggerComponent.hpp"
 
-#include <hardware/i2c.h>
+#include "hw/i2c.hpp"
 
 using namespace sparkie;
 
+const MessageType MSG_CO2 = {"co2", 0};
 QueueHandle_t AirQualityComponent::aht_queue = nullptr;
 
 AirQualityComponent::AirQualityComponent() 
-    : URosComponent("airq_sensor", CORE1, AIRQUALITY_PRIORITY, UROS_AIRQUALITY_RATE)
+    : MessageComponent("airq_sensor", CORE1, AIRQUALITY_PRIORITY, UROS_AIRQUALITY_RATE)
 {
 
 }
@@ -30,58 +31,31 @@ void AirQualityComponent::init()
     this->reset();
     vTaskDelay(1);
     this->setMeasMode(AIRQ_EVERYSEC_MODE);
-}
-
-void AirQualityComponent::rosInit()
-{
+    
     if(this->init_error)
     {
         LoggerComponent::log(LogLevel::Error, 
             "Invalid air quality sensor id");
     }
 
-    this->addPublisher(
-        "air/co2",
-        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, UInt16)
-    );
+    
+    
 }
 
-bool AirQualityComponent::read_from(uint8_t reg, uint8_t* buff, uint8_t len)
-{
-    auto written = i2c_write_timeout_us(I2C_PORT, AIRQ_ADDR, &reg, 1, true, 2000);
-    if(written != 1)
-        return false;
-    
-    auto read = i2c_read_timeout_us(I2C_PORT, AIRQ_ADDR, buff, len, false, 2000);
-    if(read != len)
-        return false;
-    
-    return true;
-}
 
-bool AirQualityComponent::write_into(uint8_t reg, uint8_t* buff, uint8_t len)
+void AirQualityComponent::msgInit()
 {
-    // maximum buff size we are using will be 4
-    uint8_t data_raw[] = {0, 0, 0, 0, 0};
-    data_raw[0] = reg;
-    for (size_t i = 1; i < len + 1; i++)
-    {
-        data_raw[i] = buff[i-1];
-    }
-    
-    auto written = i2c_write_timeout_us(I2C_PORT, AIRQ_ADDR, data_raw, len + 1, false, 2000);
-    
-    if(written != (len + 1))
-        return false;
-
-    return true;
+    this->addPublisher("/air/co2", &MSG_CO2);
 }
 
 uint8_t AirQualityComponent::getDeviceID()
 {
     uint8_t data;
-    if(this->read_from(AIRQ_REG_DEVID, &data, 1))
+    
+    if(I2C::getInstance()->read_byte(AIRQ_ADDR, AIRQ_REG_DEVID, &data) == PICO_OK)
+    {
         return data;
+    }
     
     return 0;
 }
@@ -89,20 +63,20 @@ uint8_t AirQualityComponent::getDeviceID()
 void AirQualityComponent::reset()
 {
     uint8_t reset_value = 0xF4;
-    i2c_write_blocking(I2C_PORT, AIRQ_ADDR, &reset_value, 1, false);
+    I2C::getInstance()->raw_write(AIRQ_ADDR, &reset_value, 1);
 }
 
 
 void AirQualityComponent::setMeasMode(uint8_t mode)
 {
     uint8_t mode_raw = mode << 4;
-    this->write_into(AIRQ_REG_MEASMODE, &mode_raw, 1);
+    I2C::getInstance()->write_byte(AIRQ_ADDR, AIRQ_REG_MEASMODE, mode_raw);
 }
 
 bool AirQualityComponent::isReady()
 {
     uint8_t status;
-    if(this->read_from(AIRQ_REG_STATUS, &status, 1))
+    if(I2C::getInstance()->read_byte(AIRQ_ADDR, AIRQ_REG_STATUS, &status) == PICO_OK)
     {
         return (status >> 3) & 0x01;
     }
@@ -110,15 +84,12 @@ bool AirQualityComponent::isReady()
     return false;
 }
 
-uint16_t AirQualityComponent::getECo2()
+void AirQualityComponent::obtainECo2()
 {
-    uint8_t data_raw[2];
-    if(this->read_from(AIRQ_REG_DATA, data_raw, 2))
+    if(I2C::getInstance()->read_word_swapped(AIRQ_ADDR, AIRQ_REG_DATA, &this->co2_ppm) != PICO_OK)
     {
-        return ((uint16_t)data_raw[0] << 8) | data_raw[1];
+        this->co2_ppm = 0;
     }
-
-    return 0;
 }   
 
 #define uint16to8(value) (uint8_t)(value & 0xff), (uint8_t)(value >> 8)
@@ -128,7 +99,9 @@ void AirQualityComponent::setEnvData(float temp, float hum)
     uint16_t raw_temp = (temp + 25.0) * 512;
     uint16_t raw_hum = hum * 512;
     uint8_t buff[] = {uint16to8(raw_hum), uint16to8(raw_temp)};
-    this->write_into(AIRQ_REG_ENV, buff, 4);
+    //I2C::getInstance()->write_into(AIRQ_REG_ENV, buff, 4);
+    I2C::getInstance()->write_word(AIRQ_ADDR, AIRQ_REG_ENV, raw_hum);
+    I2C::getInstance()->write_word(AIRQ_ADDR, AIRQ_REG_ENV + 2, raw_temp);
 }
 
 
@@ -139,10 +112,11 @@ void AirQualityComponent::loop(TickType_t* xLastWakeTime)
         this->setEnvData(this->aht_data.temp, this->aht_data.hum);
     }
 
-    if(this->isReady())
+    if (this->isReady())
     {
-        this->co2_msg.data = this->getECo2();
+        this->obtainECo2();
+        this->sendMessage(0, &this->co2_ppm, sizeof(this->co2_ppm));
     }
 
-    this->sendMessage(0, &this->co2_msg);
+    
 }
